@@ -18,7 +18,7 @@ class StoreUserRequest extends ApiFormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'confirmed', Password::defaults(), 'max:255'],
-            'role' => ['sometimes', Rule::in(['customer'])],
+            'role' => ['sometimes', Rule::in(['customer','admin','reseller'])],
             'phone' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
         ];
