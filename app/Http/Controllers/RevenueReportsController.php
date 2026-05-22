@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FinancialSummaryRequest;
 use App\Http\Requests\StoreRevenueReportsRequest;
 use App\Http\Requests\UpdateRevenueReportsRequest;
 use App\Models\EmployeePayRecords;
@@ -28,19 +29,20 @@ class RevenueReportsController extends Controller
         return $this->success('Revenue report created successfully.', $report, 201);
     }
 
-    public function summary(Request $request): JsonResponse
+    public function summary(FinancialSummaryRequest $request): JsonResponse
     {
+        $data = $request->validated();
         $orders = Orders::query();
         $expenses = Expenses::query();
         $payroll = EmployeePayRecords::query();
 
-        if ($request->filled('period_start')) {
+        if (isset($data['period_start'])) {
             $orders->whereDate('created_at', '>=', $request->date('period_start'));
             $expenses->whereDate('expense_date', '>=', $request->date('period_start'));
             $payroll->whereDate('pay_date', '>=', $request->date('period_start'));
         }
 
-        if ($request->filled('period_end')) {
+        if (isset($data['period_end'])) {
             $orders->whereDate('created_at', '<=', $request->date('period_end'));
             $expenses->whereDate('expense_date', '<=', $request->date('period_end'));
             $payroll->whereDate('pay_date', '<=', $request->date('period_end'));

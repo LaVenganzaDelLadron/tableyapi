@@ -2,9 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 
-class StoreSettingsRequest extends FormRequest
+class StoreSettingsRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {

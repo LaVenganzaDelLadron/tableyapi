@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AddToCartRequest;
 use App\Http\Requests\StoreCartItemsRequest;
 use App\Http\Requests\UpdateCartItemsRequest;
 use App\Models\CartItems;
@@ -28,16 +29,10 @@ class CartItemsController extends Controller
         return $this->success('Cart item created successfully.', $cartItem, 201);
     }
 
-    public function addToCart(Request $request): JsonResponse
+    public function addToCart(AddToCartRequest $request): JsonResponse
     {
         $cartItem = DB::transaction(function () use ($request) {
-            $data = $request->validate([
-                'cart_id' => ['required', 'integer', 'exists:carts,id'],
-                'product_id' => ['required', 'integer', 'exists:products,id'],
-                'quantity' => ['required', 'integer', 'min:1'],
-                'price' => ['nullable', 'numeric', 'decimal:0,2', 'min:0'],
-                'price_type' => ['sometimes', 'string', 'max:255'],
-            ]);
+            $data = $request->validated();
 
             $product = Products::findOrFail($data['product_id']);
             $quantity = (int) $data['quantity'];

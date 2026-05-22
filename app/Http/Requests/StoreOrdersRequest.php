@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class StoreOrdersRequest extends FormRequest
+class StoreOrdersRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -19,11 +19,11 @@ class StoreOrdersRequest extends FormRequest
             'shipping_fee' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
             'total_price' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
             'payment_method' => ['sometimes', 'string', 'max:255'],
-            'payment_status' => ['sometimes', 'string', 'max:255'],
+            'payment_status' => ['sometimes', Rule::in(['unpaid', 'paid', 'failed', 'refunded'])],
             'payment_reference' => ['nullable', 'string', 'max:255'],
             'paid_at' => ['nullable', 'date'],
             'shipping_address' => ['required', 'string', 'max:255'],
-            'status' => ['sometimes', 'string', 'max:255'],
+            'status' => ['sometimes', Rule::in(['pending', 'processing', 'completed', 'cancelled'])],
         ];
     }
 }

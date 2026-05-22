@@ -2,9 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateCartsRequest extends FormRequest
+class UpdateCartsRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {

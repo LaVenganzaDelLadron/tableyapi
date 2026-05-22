@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CheckoutRequest;
 use App\Http\Requests\StoreOrdersRequest;
 use App\Http\Requests\UpdateOrdersRequest;
 use App\Models\CartItems;
@@ -32,20 +33,12 @@ class OrdersController extends Controller
         return $this->success('Order created successfully.', $order, 201);
     }
 
-    public function checkout(StoreOrdersRequest $request): JsonResponse
+    public function checkout(CheckoutRequest $request): JsonResponse
     {
         $order = DB::transaction(function () use ($request) {
             $data = $request->validated();
-            $items = collect($request->validate([
-                'items' => ['sometimes', 'array'],
-                'items.*.product_id' => ['required_with:items', 'integer', 'exists:products,id'],
-                'items.*.product_name' => ['sometimes', 'string', 'max:255'],
-                'items.*.quantity' => ['required_with:items', 'integer', 'min:1'],
-                'items.*.price' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
-                'items.*.price_type' => ['sometimes', 'string', 'max:255'],
-                'items.*.sub_total' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
-                'cart_id' => ['sometimes', 'integer', 'exists:carts,id'],
-            ])['items'] ?? []);
+            $items = collect($data['items'] ?? []);
+            unset($data['items'], $data['cart_id']);
 
             $order = Orders::create($data);
 

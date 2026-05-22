@@ -14,6 +14,8 @@ class AuthController extends Controller
     public function register(StoreUserRequest $request): JsonResponse
     {
         $data = $request->validated();
+        $data['role'] = $data['role'] ?? 'customer';
+        unset($data['password_confirmation']);
 
         $data['password'] = Hash::make($data['password']);
 

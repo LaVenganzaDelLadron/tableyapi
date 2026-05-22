@@ -3,10 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\ResolvesRouteIds;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateCartItemsRequest extends FormRequest
+class UpdateCartItemsRequest extends ApiFormRequest
 {
     use ResolvesRouteIds;
 
@@ -27,9 +26,9 @@ class UpdateCartItemsRequest extends FormRequest
                     ->where(fn ($query) => $query->where('cart_id', $this->input('cart_id')))
                     ->ignore($this->routeId('cart_item')),
             ],
-            'quantity' => ['sometimes', 'integer', 'min:0'],
+            'quantity' => ['sometimes', 'integer', 'min:1'],
             'price' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
-            'price_type' => ['sometimes', 'string', 'max:255'],
+            'price_type' => ['sometimes', Rule::in(['retail', 'wholesale'])],
             'sub_total' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
         ];
     }

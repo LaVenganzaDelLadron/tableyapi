@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class StoreCacaoPurchasesRequest extends FormRequest
+class StoreCacaoPurchasesRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -15,10 +15,10 @@ class StoreCacaoPurchasesRequest extends FormRequest
     {
         return [
             'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
-            'kilogram' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
+            'kilogram' => ['required', 'numeric', 'decimal:0,2', 'min:0.01'],
             'price_per_kilogram' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
             'total_amount' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
-            'payment_status' => ['sometimes', 'string', 'max:255'],
+            'payment_status' => ['sometimes', Rule::in(['unpaid', 'paid', 'failed', 'refunded'])],
             'paid_at' => ['nullable', 'date'],
             'purchase_date' => ['required', 'date'],
             'notes' => ['nullable', 'string'],

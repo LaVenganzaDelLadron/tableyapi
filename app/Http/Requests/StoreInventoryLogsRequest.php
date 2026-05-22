@@ -2,9 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 
-class StoreInventoryLogsRequest extends FormRequest
+class StoreInventoryLogsRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {

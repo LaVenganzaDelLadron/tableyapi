@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PayrollSummaryRequest;
 use App\Http\Requests\StoreEmployeePayRecordsRequest;
 use App\Http\Requests\UpdateEmployeePayRecordsRequest;
 use App\Models\EmployeePayRecords;
@@ -27,19 +28,20 @@ class EmployeePayRecordsController extends Controller
         return $this->success('Employee pay record created successfully.', $record, 201);
     }
 
-    public function computePayroll(Request $request): JsonResponse
+    public function computePayroll(PayrollSummaryRequest $request): JsonResponse
     {
+        $data = $request->validated();
         $query = EmployeePayRecords::query()->with('employee');
 
-        if ($request->filled('employee_id')) {
-            $query->where('employee_id', $request->integer('employee_id'));
+        if (isset($data['employee_id'])) {
+            $query->where('employee_id', $data['employee_id']);
         }
 
-        if ($request->filled('date_from')) {
+        if (isset($data['date_from'])) {
             $query->whereDate('pay_date', '>=', $request->date('date_from'));
         }
 
-        if ($request->filled('date_to')) {
+        if (isset($data['date_to'])) {
             $query->whereDate('pay_date', '<=', $request->date('date_to'));
         }
 

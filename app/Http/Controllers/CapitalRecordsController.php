@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FinancialSummaryRequest;
 use App\Http\Requests\StoreCapitalRecordsRequest;
 use App\Http\Requests\UpdateCapitalRecordsRequest;
 use App\Models\CapitalRecords;
@@ -28,19 +29,20 @@ class CapitalRecordsController extends Controller
         return $this->success('Capital record created successfully.', $record, 201);
     }
 
-    public function summary(Request $request): JsonResponse
+    public function summary(FinancialSummaryRequest $request): JsonResponse
     {
+        $data = $request->validated();
         $orders = Orders::query();
         $expenses = Expenses::query();
         $payroll = EmployeePayRecords::query();
 
-        if ($request->filled('period_start')) {
+        if (isset($data['period_start'])) {
             $orders->whereDate('created_at', '>=', $request->date('period_start'));
             $expenses->whereDate('expense_date', '>=', $request->date('period_start'));
             $payroll->whereDate('pay_date', '>=', $request->date('period_start'));
         }
 
-        if ($request->filled('period_end')) {
+        if (isset($data['period_end'])) {
             $orders->whereDate('created_at', '<=', $request->date('period_end'));
             $expenses->whereDate('expense_date', '<=', $request->date('period_end'));
             $payroll->whereDate('pay_date', '<=', $request->date('period_end'));
@@ -48,7 +50,7 @@ class CapitalRecordsController extends Controller
 
         $totalRevenue = (float) $orders->sum('total_price');
         $totalExpenses = (float) $expenses->sum('amount') + (float) $payroll->sum('total_amount');
-        $startingCapital = (float) $request->input('starting_capital', 0);
+        $startingCapital = (float) ($data['starting_capital'] ?? 0);
 
         return $this->success('Capital summary computed successfully.', [
             'starting_capital' => round($startingCapital, 2),

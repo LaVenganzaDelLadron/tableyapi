@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class UpdateEmployeesRequest extends FormRequest
+class UpdateEmployeesRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -16,7 +16,7 @@ class UpdateEmployeesRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'position' => ['sometimes', 'string', 'max:255'],
-            'payment_type' => ['sometimes', 'string', 'max:255'],
+            'payment_type' => ['sometimes', Rule::in(['daily', 'roasting_per_sack', 'commission_per_pack'])],
             'rate' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:255'],
             'address' => ['sometimes', 'nullable', 'string', 'max:255'],

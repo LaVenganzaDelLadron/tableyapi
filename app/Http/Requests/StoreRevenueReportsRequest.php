@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreRevenueReportsRequest extends FormRequest
+class StoreRevenueReportsRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -20,6 +19,7 @@ class StoreRevenueReportsRequest extends FormRequest
             'period_end' => [
                 'required',
                 'date',
+                'after_or_equal:period_start',
                 Rule::unique('revenue_reports', 'period_end')
                     ->where(fn ($query) => $query
                         ->where('report_type', $this->input('report_type', 'monthly'))

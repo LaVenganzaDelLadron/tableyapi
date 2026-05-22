@@ -2,9 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCacaoBatchesRequest extends FormRequest
+class StoreCacaoBatchesRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -15,7 +14,7 @@ class StoreCacaoBatchesRequest extends FormRequest
     {
         return [
             'cacao_purchase_id' => ['nullable', 'integer', 'exists:cacao_purchases,id'],
-            'raw_kilogram' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
+            'raw_kilogram' => ['required', 'numeric', 'decimal:0,2', 'min:0.01'],
             'roasted_kilogram' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
             'sack_count' => ['sometimes', 'integer', 'min:0'],
             'roasting_payment_per_sack' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],

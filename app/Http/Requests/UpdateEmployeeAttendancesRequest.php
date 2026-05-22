@@ -3,10 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\ResolvesRouteIds;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateEmployeeAttendancesRequest extends FormRequest
+class UpdateEmployeeAttendancesRequest extends ApiFormRequest
 {
     use ResolvesRouteIds;
 
