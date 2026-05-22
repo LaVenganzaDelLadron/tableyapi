@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('sales_reports', function (Blueprint $table) {
             $table->id();
-            $table->date('report_date');
+            $table->string('report_type')->default('daily');
+            $table->date('period_start');
+            $table->date('period_end');
             $table->decimal('total_sales', 10, 2);
-            $table->integer('total_orders');
-            $table->integer('total_revenue');
+            $table->unsignedInteger('total_orders');
+            $table->decimal('total_revenue', 10, 2);
             $table->timestamps();
+
+            $table->unique(['report_type', 'period_start', 'period_end']);
         });
     }
 

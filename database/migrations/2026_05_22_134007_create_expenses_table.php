@@ -16,9 +16,13 @@ return new class extends Migration
             $table->string('title');
             $table->string('category');
             $table->decimal('amount', 10, 2);
+            $table->string('payment_method')->nullable();
+            $table->string('payee')->nullable();
             $table->date('expense_date');
             $table->text('notes')->nullable();
             $table->timestamps();
+
+            $table->index(['category', 'expense_date']);
         });
     }
 

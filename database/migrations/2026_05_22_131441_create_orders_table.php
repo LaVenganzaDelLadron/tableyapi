@@ -13,12 +13,20 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->decimal('total_price', 10, 2);
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->decimal('subtotal', 10, 2)->default(0);
+            $table->decimal('shipping_fee', 10, 2)->default(0);
+            $table->decimal('total_price', 10, 2)->default(0);
             $table->string('payment_method')->default('cash_on_delivery');
+            $table->string('payment_status')->default('unpaid');
+            $table->string('payment_reference')->nullable();
+            $table->timestamp('paid_at')->nullable();
             $table->string('shipping_address');
             $table->string('status')->default('pending');
             $table->timestamps();
+
+            $table->index(['user_id', 'status']);
+            $table->index(['payment_status', 'paid_at']);
         });
     }
 

@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('production_batches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cacao_batch_id')->constrained()->onDelete('cascade');
-            $table->integer('packs_produced');
+            $table->foreignId('cacao_batch_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->unsignedInteger('packs_produced');
             $table->decimal('price_per_pack', 10, 2);
             $table->decimal('total_production_value', 10, 2);
+            $table->date('production_date');
             $table->timestamps();
+
+            $table->index(['product_id', 'production_date']);
         });
     }
 

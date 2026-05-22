@@ -13,11 +13,16 @@ return new class extends Migration
     {
         Schema::create('capital_records', function (Blueprint $table) {
             $table->id();
+            $table->string('report_type')->default('monthly');
+            $table->date('period_start');
+            $table->date('period_end');
             $table->decimal('starting_capital', 10, 2);
             $table->decimal('total_revenue', 10, 2);
             $table->decimal('total_expenses', 10, 2);
             $table->decimal('final_profit', 10, 2);
             $table->timestamps();
+
+            $table->unique(['report_type', 'period_start', 'period_end']);
         });
     }
 

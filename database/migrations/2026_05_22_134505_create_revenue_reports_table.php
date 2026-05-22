@@ -13,10 +13,15 @@ return new class extends Migration
     {
         Schema::create('revenue_reports', function (Blueprint $table) {
             $table->id();
-            $table->date('report_date');
-            $table->decimal('expenses', 10, 2);
+            $table->string('report_type')->default('monthly');
+            $table->date('period_start');
+            $table->date('period_end');
+            $table->decimal('gross_revenue', 10, 2);
+            $table->decimal('total_expenses', 10, 2);
             $table->decimal('net_income', 10, 2);
             $table->timestamps();
+
+            $table->unique(['report_type', 'period_start', 'period_end']);
         });
     }
 

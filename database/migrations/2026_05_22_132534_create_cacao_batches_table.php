@@ -13,8 +13,12 @@ return new class extends Migration
     {
         Schema::create('cacao_batches', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('cacao_purchase_id')->nullable()->constrained()->nullOnDelete();
             $table->decimal('raw_kilogram', 10, 2);
             $table->decimal('roasted_kilogram', 10, 2);
+            $table->unsignedInteger('sack_count')->default(0);
+            $table->decimal('roasting_payment_per_sack', 10, 2)->default(0);
+            $table->decimal('total_roasting_payment', 10, 2)->default(0);
             $table->date('production_date');
             $table->text('notes')->nullable();
             $table->timestamps();

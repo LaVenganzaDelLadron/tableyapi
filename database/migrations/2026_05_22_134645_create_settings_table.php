@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
             $table->string('site_name');
-            $table->decimal('shipping fee', 10, 2);
+            $table->decimal('shipping_fee', 10, 2)->default(0);
             $table->string('contact_email');
-            $table->string('maintenance_mode')->default('off');
+            $table->boolean('maintenance_mode')->default(false);
             $table->timestamps();
         });
     }
