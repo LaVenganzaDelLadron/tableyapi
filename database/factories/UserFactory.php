@@ -24,11 +24,23 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $cities = ['Tagum City', 'Davao City', 'Panabo City', 'Mati City', 'Digos City'];
+
         return [
-            'name' => fake()->name(),
+            'name' => fake()->randomElement([
+                'Maria Santos',
+                'Juan dela Cruz',
+                'Ana Reyes',
+                'Jose Garcia',
+                'Liza Mendoza',
+                'Carlo Fernandez',
+            ]),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'password' => static::$password ??= Hash::make('Password123!'),
+            'role' => fake()->randomElement(['customer', 'reseller']),
+            'phone' => '09'.fake()->numerify('#########'),
+            'address' => 'Barangay '.fake()->randomElement(['Cuambogan', 'Apokon', 'Mankilam', 'Visayan Village']).', '.fake()->randomElement($cities),
             'remember_token' => Str::random(10),
         ];
     }
