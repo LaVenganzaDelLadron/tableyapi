@@ -50,19 +50,22 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     /*
     |--------------------------------------------------------------------------
-    | Ecommerce Routes
+    | Customer Ecommerce Routes
     |--------------------------------------------------------------------------
     */
 
-    Route::post('/cart-items/add', [CartItemsController::class, 'addToCart']);
-    Route::post('/orders/checkout', [OrdersController::class, 'checkout']);
-    Route::patch('/orders/{order}/status', [OrdersController::class, 'updateStatus']);
+    Route::middleware('customer')->group(function (): void {
+        Route::post('/cart-items/add', [CartItemsController::class, 'addToCart']);
+        Route::post('/orders/checkout', [OrdersController::class, 'checkout']);
+        Route::patch('/orders/{order}/status', [OrdersController::class, 'updateStatus']);
 
-    Route::apiResource('carts', CartsController::class);
-    Route::apiResource('cart-items', CartItemsController::class);
-    Route::apiResource('orders', OrdersController::class);
-    Route::apiResource('order-items', OrderItemsController::class);
-    Route::apiResource('reviews', ReviewsController::class);
+        Route::apiResource('carts', CartsController::class);
+        Route::apiResource('cart-items', CartItemsController::class);
+        Route::apiResource('orders', OrdersController::class);
+        Route::apiResource('order-items', OrderItemsController::class);
+        Route::apiResource('reviews', ReviewsController::class);
+    });
+
     Route::apiResource('notifications', NotificationsController::class);
 
     /*
@@ -71,7 +74,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('role:admin')->group(function (): void {
+    Route::middleware('admin')->group(function (): void {
         Route::post('/cacao-batches/record-roasting', [CacaoBatchesController::class, 'recordRoasting']);
         Route::post('/production-batches/record-production', [ProductionBatchesController::class, 'recordProduction']);
 
