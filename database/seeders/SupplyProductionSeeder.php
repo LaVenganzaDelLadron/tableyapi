@@ -8,12 +8,14 @@ use App\Models\InventoryLogs;
 use App\Models\ProductionBatches;
 use App\Models\Products;
 use App\Models\Suppliers;
+use App\Services\FinancialReportService;
 use Illuminate\Database\Seeder;
 
 class SupplyProductionSeeder extends Seeder
 {
     public function run(): void
     {
+        $financialReportService = app(FinancialReportService::class);
         $suppliers = collect([
             ['name' => 'Dela Cruz Cacao Farm', 'email' => 'delacruz.farm@tableya.test', 'phone' => '09975550001', 'address' => 'Barangay Talandang, Davao City'],
             ['name' => 'Mendoza Family Cacao', 'email' => 'mendoza.cacao@tableya.test', 'phone' => '09975550002', 'address' => 'Barangay Bincungan, Tagum City'],
@@ -74,6 +76,7 @@ class SupplyProductionSeeder extends Seeder
                     'production_date' => date('Y-m-d', strtotime($data['date'].' +3 days')),
                 ]
             );
+            $financialReportService->syncProductionCost($production);
 
             $product = Products::find($products[$productName]);
             $product->update(['stock' => max((int) $product->stock, $packs)]);

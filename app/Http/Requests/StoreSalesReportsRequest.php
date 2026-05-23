@@ -25,9 +25,9 @@ class StoreSalesReportsRequest extends ApiFormRequest
                         ->where('report_type', $this->input('report_type', 'daily'))
                         ->where('period_start', $this->input('period_start'))),
             ],
-            'total_sales' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
-            'total_orders' => ['required', 'integer', 'min:0'],
-            'total_revenue' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
+            'total_sales' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'total_orders' => ['sometimes', 'integer', 'min:0'],
+            'total_revenue' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
         ];
     }
 }

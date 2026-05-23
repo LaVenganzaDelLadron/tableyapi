@@ -29,8 +29,15 @@ class UpdateCapitalRecordsRequest extends ApiFormRequest
                     ->ignore($this->routeId('capital_record')),
             ],
             'starting_capital' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'sales_revenue' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'cacao_costs' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'employee_costs' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'operational_expenses' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
             'total_revenue' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
             'total_expenses' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'gross_profit' => ['sometimes', 'numeric', 'decimal:0,2'],
+            'net_profit' => ['sometimes', 'numeric', 'decimal:0,2'],
+            'remaining_capital' => ['sometimes', 'numeric', 'decimal:0,2'],
             'final_profit' => ['sometimes', 'numeric', 'decimal:0,2'],
         ];
     }

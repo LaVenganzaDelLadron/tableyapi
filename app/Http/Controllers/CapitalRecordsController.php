@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\FinancialSummaryRequest;
+use App\Http\Requests\GenerateMonthlyFinancialReportRequest;
 use App\Http\Requests\StoreCapitalRecordsRequest;
 use App\Http\Requests\UpdateCapitalRecordsRequest;
 use App\Models\CapitalRecords;
-use App\Models\EmployeePayRecords;
-use App\Models\Expenses;
-use App\Models\Orders;
+use App\Services\FinancialReportService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,41 +22,41 @@ class CapitalRecordsController extends Controller
         return $this->success('Capital records retrieved successfully.', $records);
     }
 
-    public function store(StoreCapitalRecordsRequest $request): JsonResponse
+    public function store(StoreCapitalRecordsRequest $request, FinancialReportService $financialReportService): JsonResponse
     {
-        $record = DB::transaction(fn () => CapitalRecords::create($request->validated()));
+        $record = DB::transaction(function () use ($request, $financialReportService) {
+            $data = $request->validated();
+            $summary = $financialReportService->calculatePeriodSummary(
+                $data['period_start'],
+                $data['period_end'],
+                isset($data['starting_capital']) ? (float) $data['starting_capital'] : null
+            );
+
+            return CapitalRecords::create(array_merge([
+                'report_type' => $data['report_type'] ?? 'monthly',
+                'period_start' => $data['period_start'],
+                'period_end' => $data['period_end'],
+            ], $summary));
+        });
 
         return $this->success('Capital record created successfully.', $record, 201);
     }
 
-    public function summary(FinancialSummaryRequest $request): JsonResponse
+    public function summary(FinancialSummaryRequest $request, FinancialReportService $financialReportService): JsonResponse
     {
         $data = $request->validated();
-        $orders = Orders::query();
-        $expenses = Expenses::query();
-        $payroll = EmployeePayRecords::query();
-
-        if (isset($data['period_start'])) {
-            $orders->whereDate('created_at', '>=', $request->date('period_start'));
-            $expenses->whereDate('expense_date', '>=', $request->date('period_start'));
-            $payroll->whereDate('pay_date', '>=', $request->date('period_start'));
-        }
-
-        if (isset($data['period_end'])) {
-            $orders->whereDate('created_at', '<=', $request->date('period_end'));
-            $expenses->whereDate('expense_date', '<=', $request->date('period_end'));
-            $payroll->whereDate('pay_date', '<=', $request->date('period_end'));
-        }
-
-        $totalRevenue = (float) $orders->sum('total_price');
-        $totalExpenses = (float) $expenses->sum('amount') + (float) $payroll->sum('total_amount');
-        $startingCapital = (float) ($data['starting_capital'] ?? 0);
+        [$periodStart, $periodEnd] = $this->periodFromRequest($data);
+        $summary = $financialReportService->calculatePeriodSummary(
+            $periodStart,
+            $periodEnd,
+            isset($data['starting_capital']) ? (float) $data['starting_capital'] : null
+        );
 
         return $this->success('Capital summary computed successfully.', [
-            'starting_capital' => round($startingCapital, 2),
-            'total_revenue' => round($totalRevenue, 2),
-            'total_expenses' => round($totalExpenses, 2),
-            'final_profit' => round($startingCapital + $totalRevenue - $totalExpenses, 2),
+            'period_start' => $periodStart,
+            'period_end' => $periodEnd,
+            ...$summary,
+            'inventory_value' => $financialReportService->calculateInventoryValue(),
         ]);
     }
 
@@ -68,7 +68,7 @@ class CapitalRecordsController extends Controller
     public function update(UpdateCapitalRecordsRequest $request, CapitalRecords $capitalRecord): JsonResponse
     {
         $capitalRecord = DB::transaction(function () use ($request, $capitalRecord) {
-            $capitalRecord->update($request->validated());
+            $capitalRecord->update($this->withCompatibilityValues($request->validated()));
 
             return $capitalRecord;
         });
@@ -81,5 +81,47 @@ class CapitalRecordsController extends Controller
         $capitalRecord->delete();
 
         return $this->success('Capital record deleted successfully.');
+    }
+
+    public function generateMonthly(GenerateMonthlyFinancialReportRequest $request, FinancialReportService $financialReportService): JsonResponse
+    {
+        $data = $request->validated();
+        $reports = $financialReportService->generateMonthlyReports(
+            (int) $data['year'],
+            (int) $data['month'],
+            isset($data['starting_capital']) ? (float) $data['starting_capital'] : null
+        );
+
+        return $this->success('Monthly financial reports generated successfully.', $reports, 201);
+    }
+
+    private function periodFromRequest(array $data): array
+    {
+        $periodStart = $data['period_start'] ?? CarbonImmutable::now()->startOfMonth()->toDateString();
+        $periodEnd = $data['period_end'] ?? CarbonImmutable::parse($periodStart)->endOfMonth()->toDateString();
+
+        return [$periodStart, $periodEnd];
+    }
+
+    private function withCompatibilityValues(array $data): array
+    {
+        if (array_key_exists('sales_revenue', $data)) {
+            $data['total_revenue'] = $data['sales_revenue'];
+        }
+
+        if (array_key_exists('cacao_costs', $data) || array_key_exists('employee_costs', $data) || array_key_exists('operational_expenses', $data)) {
+            $data['total_expenses'] = round(
+                (float) ($data['cacao_costs'] ?? 0)
+                + (float) ($data['employee_costs'] ?? 0)
+                + (float) ($data['operational_expenses'] ?? 0),
+                2
+            );
+        }
+
+        if (array_key_exists('net_profit', $data)) {
+            $data['final_profit'] = $data['net_profit'];
+        }
+
+        return $data;
     }
 }

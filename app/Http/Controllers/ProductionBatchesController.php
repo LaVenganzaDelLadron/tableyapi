@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateProductionBatchesRequest;
 use App\Models\InventoryLogs;
 use App\Models\ProductionBatches;
 use App\Models\Products;
+use App\Services\FinancialReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,18 +23,24 @@ class ProductionBatchesController extends Controller
         return $this->success('Production batches retrieved successfully.', $batches);
     }
 
-    public function store(StoreProductionBatchesRequest $request): JsonResponse
+    public function store(StoreProductionBatchesRequest $request, FinancialReportService $financialReportService): JsonResponse
     {
-        $batch = DB::transaction(fn () => ProductionBatches::create($request->validated())->load(self::RELATIONS));
+        $batch = DB::transaction(function () use ($request, $financialReportService) {
+            $batch = ProductionBatches::create($request->validated());
+            $financialReportService->syncProductionCost($batch);
+
+            return $batch->load(self::RELATIONS);
+        });
 
         return $this->success('Production batch created successfully.', $batch, 201);
     }
 
-    public function recordProduction(StoreProductionBatchesRequest $request): JsonResponse
+    public function recordProduction(StoreProductionBatchesRequest $request, FinancialReportService $financialReportService): JsonResponse
     {
-        $batch = DB::transaction(function () use ($request) {
+        $batch = DB::transaction(function () use ($request, $financialReportService) {
             $data = $request->validated();
             $batch = ProductionBatches::create($data);
+            $financialReportService->syncProductionCost($batch);
             $product = Products::lockForUpdate()->findOrFail($data['product_id']);
             $product->increment('stock', (int) $data['packs_produced']);
 
@@ -57,10 +64,11 @@ class ProductionBatchesController extends Controller
         return $this->success('Production batch retrieved successfully.', $productionBatch->load(self::RELATIONS));
     }
 
-    public function update(UpdateProductionBatchesRequest $request, ProductionBatches $productionBatch): JsonResponse
+    public function update(UpdateProductionBatchesRequest $request, ProductionBatches $productionBatch, FinancialReportService $financialReportService): JsonResponse
     {
-        $productionBatch = DB::transaction(function () use ($request, $productionBatch) {
+        $productionBatch = DB::transaction(function () use ($request, $productionBatch, $financialReportService) {
             $productionBatch->update($request->validated());
+            $financialReportService->syncProductionCost($productionBatch);
 
             return $productionBatch->load(self::RELATIONS);
         });

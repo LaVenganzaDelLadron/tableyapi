@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSalesReportsRequest;
 use App\Http\Requests\UpdateSalesReportsRequest;
 use App\Models\SalesReports;
+use App\Services\FinancialReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,9 +19,22 @@ class SalesReportsController extends Controller
         return $this->success('Sales reports retrieved successfully.', $reports);
     }
 
-    public function store(StoreSalesReportsRequest $request): JsonResponse
+    public function store(StoreSalesReportsRequest $request, FinancialReportService $financialReportService): JsonResponse
     {
-        $report = DB::transaction(fn () => SalesReports::create($request->validated()));
+        $report = DB::transaction(function () use ($request, $financialReportService) {
+            $data = $request->validated();
+            $paidRevenue = $financialReportService->paidSalesRevenue($data['period_start'], $data['period_end']);
+            $paidOrdersCount = $financialReportService->paidOrdersCount($data['period_start'], $data['period_end']);
+
+            return SalesReports::create([
+                'report_type' => $data['report_type'] ?? 'daily',
+                'period_start' => $data['period_start'],
+                'period_end' => $data['period_end'],
+                'total_sales' => $paidRevenue,
+                'total_orders' => $paidOrdersCount,
+                'total_revenue' => $paidRevenue,
+            ]);
+        });
 
         return $this->success('Sales report created successfully.', $report, 201);
     }

@@ -25,9 +25,9 @@ class StoreRevenueReportsRequest extends ApiFormRequest
                         ->where('report_type', $this->input('report_type', 'monthly'))
                         ->where('period_start', $this->input('period_start'))),
             ],
-            'gross_revenue' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
-            'total_expenses' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
-            'net_income' => ['required', 'numeric', 'decimal:0,2'],
+            'gross_revenue' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'total_expenses' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'net_income' => ['sometimes', 'numeric', 'decimal:0,2'],
         ];
     }
 }

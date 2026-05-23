@@ -79,6 +79,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('/production-batches/record-production', [ProductionBatchesController::class, 'recordProduction']);
 
         Route::get('/employee-pay-records/payroll-summary', [EmployeePayRecordsController::class, 'computePayroll']);
+        Route::post('/capital-records/generate-monthly', [CapitalRecordsController::class, 'generateMonthly']);
         Route::get('/capital-records/summary', [CapitalRecordsController::class, 'summary']);
         Route::get('/revenue-reports/summary', [RevenueReportsController::class, 'summary']);
 

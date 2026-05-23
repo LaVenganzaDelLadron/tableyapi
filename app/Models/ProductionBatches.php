@@ -19,6 +19,8 @@ class ProductionBatches extends Model
         'packs_produced',
         'price_per_pack',
         'total_production_value',
+        'total_production_cost',
+        'cost_per_pack',
         'production_date',
     ];
 
@@ -30,6 +32,8 @@ class ProductionBatches extends Model
             'packs_produced' => 'integer',
             'price_per_pack' => 'decimal:2',
             'total_production_value' => 'decimal:2',
+            'total_production_cost' => 'decimal:2',
+            'cost_per_pack' => 'decimal:2',
             'production_date' => 'date',
         ];
     }

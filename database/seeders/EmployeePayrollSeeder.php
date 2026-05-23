@@ -7,12 +7,14 @@ use App\Models\EmployeeAttendances;
 use App\Models\EmployeePayRecords;
 use App\Models\Employees;
 use App\Models\ProductionBatches;
+use App\Services\FinancialReportService;
 use Illuminate\Database\Seeder;
 
 class EmployeePayrollSeeder extends Seeder
 {
     public function run(): void
     {
+        $financialReportService = app(FinancialReportService::class);
         $employees = collect([
             ['name' => 'Alma Bautista', 'position' => 'Roasting Worker', 'payment_type' => 'roasting_per_sack', 'rate' => 100.00, 'phone' => '09976660001', 'address' => 'Barangay Apokon, Tagum City'],
             ['name' => 'Rico Pangan', 'position' => 'Packaging Worker', 'payment_type' => 'commission_per_pack', 'rate' => 2.50, 'phone' => '09976660002', 'address' => 'Barangay Mankilam, Tagum City'],
@@ -66,6 +68,10 @@ class EmployeePayrollSeeder extends Seeder
                     'notes' => 'Roasting payment based on sack count.',
                 ]
             );
+            ProductionBatches::query()
+                ->where('cacao_batch_id', $cacaoBatch->id)
+                ->get()
+                ->each(fn (ProductionBatches $batch) => $financialReportService->syncProductionCost($batch));
         }
 
         $productionBatch = ProductionBatches::query()->first();
@@ -84,6 +90,7 @@ class EmployeePayrollSeeder extends Seeder
                     'notes' => 'Packaging commission based on packs produced.',
                 ]
             );
+            $financialReportService->syncProductionCost($productionBatch);
         }
     }
 }

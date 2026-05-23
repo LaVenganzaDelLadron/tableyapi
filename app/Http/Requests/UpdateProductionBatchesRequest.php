@@ -18,6 +18,8 @@ class UpdateProductionBatchesRequest extends ApiFormRequest
             'packs_produced' => ['sometimes', 'integer', 'min:1'],
             'price_per_pack' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
             'total_production_value' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'total_production_cost' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'cost_per_pack' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
             'production_date' => ['sometimes', 'date'],
         ];
     }

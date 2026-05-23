@@ -25,10 +25,17 @@ class StoreCapitalRecordsRequest extends ApiFormRequest
                         ->where('report_type', $this->input('report_type', 'monthly'))
                         ->where('period_start', $this->input('period_start'))),
             ],
-            'starting_capital' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
-            'total_revenue' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
-            'total_expenses' => ['required', 'numeric', 'decimal:0,2', 'min:0'],
-            'final_profit' => ['required', 'numeric', 'decimal:0,2'],
+            'starting_capital' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'sales_revenue' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'cacao_costs' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'employee_costs' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'operational_expenses' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'total_revenue' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'total_expenses' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
+            'gross_profit' => ['sometimes', 'numeric', 'decimal:0,2'],
+            'net_profit' => ['sometimes', 'numeric', 'decimal:0,2'],
+            'remaining_capital' => ['sometimes', 'numeric', 'decimal:0,2'],
+            'final_profit' => ['sometimes', 'numeric', 'decimal:0,2'],
         ];
     }
 }

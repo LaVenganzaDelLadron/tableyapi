@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\FinancialSummaryRequest;
 use App\Http\Requests\StoreRevenueReportsRequest;
 use App\Http\Requests\UpdateRevenueReportsRequest;
-use App\Models\EmployeePayRecords;
-use App\Models\Expenses;
-use App\Models\Orders;
 use App\Models\RevenueReports;
+use App\Services\FinancialReportService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,39 +21,41 @@ class RevenueReportsController extends Controller
         return $this->success('Revenue reports retrieved successfully.', $reports);
     }
 
-    public function store(StoreRevenueReportsRequest $request): JsonResponse
+    public function store(StoreRevenueReportsRequest $request, FinancialReportService $financialReportService): JsonResponse
     {
-        $report = DB::transaction(fn () => RevenueReports::create($request->validated()));
+        $report = DB::transaction(function () use ($request, $financialReportService) {
+            $data = $request->validated();
+            $summary = $financialReportService->calculatePeriodSummary($data['period_start'], $data['period_end']);
+
+            return RevenueReports::create([
+                'report_type' => $data['report_type'] ?? 'monthly',
+                'period_start' => $data['period_start'],
+                'period_end' => $data['period_end'],
+                'gross_revenue' => $summary['sales_revenue'],
+                'total_expenses' => $summary['total_expenses'],
+                'net_income' => $summary['net_profit'],
+            ]);
+        });
 
         return $this->success('Revenue report created successfully.', $report, 201);
     }
 
-    public function summary(FinancialSummaryRequest $request): JsonResponse
+    public function summary(FinancialSummaryRequest $request, FinancialReportService $financialReportService): JsonResponse
     {
         $data = $request->validated();
-        $orders = Orders::query();
-        $expenses = Expenses::query();
-        $payroll = EmployeePayRecords::query();
-
-        if (isset($data['period_start'])) {
-            $orders->whereDate('created_at', '>=', $request->date('period_start'));
-            $expenses->whereDate('expense_date', '>=', $request->date('period_start'));
-            $payroll->whereDate('pay_date', '>=', $request->date('period_start'));
-        }
-
-        if (isset($data['period_end'])) {
-            $orders->whereDate('created_at', '<=', $request->date('period_end'));
-            $expenses->whereDate('expense_date', '<=', $request->date('period_end'));
-            $payroll->whereDate('pay_date', '<=', $request->date('period_end'));
-        }
-
-        $grossRevenue = (float) $orders->sum('total_price');
-        $totalExpenses = (float) $expenses->sum('amount') + (float) $payroll->sum('total_amount');
+        $periodStart = $data['period_start'] ?? CarbonImmutable::now()->startOfMonth()->toDateString();
+        $periodEnd = $data['period_end'] ?? CarbonImmutable::parse($periodStart)->endOfMonth()->toDateString();
+        $summary = $financialReportService->calculatePeriodSummary($periodStart, $periodEnd);
 
         return $this->success('Revenue summary computed successfully.', [
-            'gross_revenue' => round($grossRevenue, 2),
-            'total_expenses' => round($totalExpenses, 2),
-            'net_income' => round($grossRevenue - $totalExpenses, 2),
+            'period_start' => $periodStart,
+            'period_end' => $periodEnd,
+            'gross_revenue' => $summary['sales_revenue'],
+            'cacao_costs' => $summary['cacao_costs'],
+            'employee_costs' => $summary['employee_costs'],
+            'operational_expenses' => $summary['operational_expenses'],
+            'total_expenses' => $summary['total_expenses'],
+            'net_income' => $summary['net_profit'],
         ]);
     }
 
