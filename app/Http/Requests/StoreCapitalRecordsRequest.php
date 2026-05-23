@@ -26,13 +26,21 @@ class StoreCapitalRecordsRequest extends ApiFormRequest
                         ->where('period_start', $this->input('period_start'))),
             ],
             'starting_capital' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
-            'sales_revenue' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
-            'cacao_costs' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
-            'employee_costs' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
-            'operational_expenses' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
-            'total_expenses' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0'],
-            'net_profit' => ['sometimes', 'numeric', 'decimal:0,2'],
-            'remaining_capital' => ['sometimes', 'numeric', 'decimal:0,2'],
+            'sales_revenue' => ['prohibited'],
+            'cacao_costs' => ['prohibited'],
+            'employee_costs' => ['prohibited'],
+            'operational_expenses' => ['prohibited'],
+            'total_expenses' => ['prohibited'],
+            'gross_profit' => ['prohibited'],
+            'net_profit' => ['prohibited'],
+            'remaining_capital' => ['prohibited'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            '*.prohibited' => 'Capital financial totals are generated automatically from source records and cannot be submitted manually.',
         ];
     }
 }

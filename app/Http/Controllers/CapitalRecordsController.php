@@ -60,10 +60,27 @@ class CapitalRecordsController extends Controller
         return $this->success('Capital record retrieved successfully.', $capitalRecord);
     }
 
-    public function update(UpdateCapitalRecordsRequest $request, CapitalRecords $capitalRecord): JsonResponse
+    public function update(
+        UpdateCapitalRecordsRequest $request,
+        CapitalRecords $capitalRecord,
+        FinancialService $financialReportService
+    ): JsonResponse
     {
-        $capitalRecord = DB::transaction(function () use ($request, $capitalRecord) {
-            $capitalRecord->update($request->validated());
+        $capitalRecord = DB::transaction(function () use ($request, $capitalRecord, $financialReportService) {
+            $data = $request->validated();
+            $periodStart = $data['period_start'] ?? $capitalRecord->period_start->toDateString();
+            $periodEnd = $data['period_end'] ?? $capitalRecord->period_end->toDateString();
+            $reportType = $data['report_type'] ?? $capitalRecord->report_type;
+            $startingCapital = $data['starting_capital'] ?? $capitalRecord->starting_capital;
+
+            $attributes = $financialReportService->calculateCapitalRecordAttributes(
+                $periodStart,
+                $periodEnd,
+                $reportType,
+                $startingCapital
+            );
+
+            $capitalRecord->update($attributes);
 
             return $capitalRecord;
         });

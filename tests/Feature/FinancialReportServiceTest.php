@@ -15,6 +15,7 @@ use App\Services\FinancialService;
 use App\Services\InventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -79,6 +80,7 @@ class FinancialReportServiceTest extends TestCase
         $summary = app(FinancialService::class)->calculatePeriodSummary('2026-05-01', '2026-05-31', 50000);
 
         $this->assertSame('100000.00', $summary['sales_revenue']);
+        $this->assertSame('85000.00', $summary['gross_profit']);
         $this->assertSame('40000.00', $summary['total_expenses']);
         $this->assertSame('60000.00', $summary['net_profit']);
         $this->assertSame('110000.00', $summary['remaining_capital']);
@@ -105,6 +107,57 @@ class FinancialReportServiceTest extends TestCase
         $this->assertFalse(Schema::hasColumn('capital_records', 'total_revenue'));
         $this->assertFalse(Schema::hasColumn('capital_records', 'final_profit'));
         $this->assertFalse(Schema::hasColumn('capital_records', 'gross_profit'));
+    }
+
+    public function test_generated_capital_record_stores_only_accounting_snapshot_columns(): void
+    {
+        Orders::create([
+            'subtotal' => 5000,
+            'shipping_fee' => 0,
+            'total_price' => 5000,
+            'payment_method' => 'gcash',
+            'payment_status' => 'paid',
+            'payment_reference' => 'PAID-002',
+            'paid_at' => '2026-05-08 09:00:00',
+            'shipping_address' => 'Tagum City',
+            'status' => 'completed',
+        ]);
+        CacaoPurchases::create([
+            'kilogram' => 10,
+            'price_per_kilogram' => 100,
+            'total_amount' => 1000,
+            'payment_status' => 'paid',
+            'paid_at' => '2026-05-03 09:00:00',
+            'purchase_date' => '2026-05-03',
+        ]);
+
+        $record = app(FinancialService::class)->generateCapitalRecord('2026-05-01', '2026-05-31', 'monthly', 10000);
+
+        $this->assertSame('5000.00', (string) $record->sales_revenue);
+        $this->assertSame('1000.00', (string) $record->cacao_costs);
+        $this->assertSame('4000.00', (string) $record->net_profit);
+        $this->assertSame('14000.00', (string) $record->remaining_capital);
+        $this->assertArrayNotHasKey('gross_profit', $record->getAttributes());
+    }
+
+    public function test_capital_record_requests_reject_manually_submitted_computed_totals(): void
+    {
+        $payload = [
+            'report_type' => 'monthly',
+            'period_start' => '2026-05-01',
+            'period_end' => '2026-05-31',
+            'starting_capital' => '10000.00',
+            'sales_revenue' => '999999.00',
+            'gross_profit' => '999999.00',
+            'net_profit' => '999999.00',
+        ];
+        $request = \App\Http\Requests\StoreCapitalRecordsRequest::create('/api/capital-records', 'POST', $payload);
+        $validator = Validator::make($payload, $request->rules(), $request->messages());
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('sales_revenue', $validator->errors()->messages());
+        $this->assertArrayHasKey('gross_profit', $validator->errors()->messages());
+        $this->assertArrayHasKey('net_profit', $validator->errors()->messages());
     }
 
     public function test_next_period_inherits_previous_remaining_capital(): void

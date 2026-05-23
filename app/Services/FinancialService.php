@@ -61,6 +61,11 @@ class FinancialService
         return $this->sub($salesRevenue, $totalExpenses);
     }
 
+    public function calculateGrossProfit(string $salesRevenue, string $cacaoCosts): string
+    {
+        return $this->sub($salesRevenue, $cacaoCosts);
+    }
+
     public function calculateCapital(string $startingCapital, string $netProfit): string
     {
         return $this->add($startingCapital, $netProfit);
@@ -96,6 +101,7 @@ class FinancialService
     {
         $salesRevenue = $this->calculateRevenue($periodStart, $periodEnd);
         $expenses = $this->calculateExpenses($periodStart, $periodEnd);
+        $grossProfit = $this->calculateGrossProfit($salesRevenue, $expenses['cacao_costs']);
         $netProfit = $this->calculateNetProfit($salesRevenue, $expenses['total_expenses']);
         $startingCapital = $this->money($startingCapital ?? $this->startingCapitalForPeriod($periodStart));
         $remainingCapital = $this->calculateCapital($startingCapital, $netProfit);
@@ -107,9 +113,23 @@ class FinancialService
             'employee_costs' => $expenses['employee_costs'],
             'operational_expenses' => $expenses['operational_expenses'],
             'total_expenses' => $expenses['total_expenses'],
+            'gross_profit' => $grossProfit,
             'net_profit' => $netProfit,
             'remaining_capital' => $remainingCapital,
         ];
+    }
+
+    public function calculateCapitalRecordAttributes(
+        string $periodStart,
+        string $periodEnd,
+        string $reportType = 'monthly',
+        int|float|string|null $startingCapital = null
+    ): array {
+        return array_merge([
+            'report_type' => $reportType,
+            'period_start' => $periodStart,
+            'period_end' => $periodEnd,
+        ], $this->capitalRecordValues($this->calculatePeriodSummary($periodStart, $periodEnd, $startingCapital)));
     }
 
     public function startingCapitalForPeriod(string $periodStart): string
@@ -242,7 +262,7 @@ class FinancialService
 
             $capitalRecord = CapitalRecords::updateOrCreate(
                 ['report_type' => 'monthly', 'period_start' => $periodStart, 'period_end' => $periodEnd],
-                $summary
+                $this->capitalRecordValues($summary)
             );
 
             return [
@@ -264,13 +284,27 @@ class FinancialService
         int|float|string|null $startingCapital = null
     ): CapitalRecords {
         return DB::transaction(function () use ($periodStart, $periodEnd, $reportType, $startingCapital): CapitalRecords {
-            $summary = $this->calculatePeriodSummary($periodStart, $periodEnd, $startingCapital);
+            $attributes = $this->calculateCapitalRecordAttributes($periodStart, $periodEnd, $reportType, $startingCapital);
 
             return CapitalRecords::updateOrCreate(
                 ['report_type' => $reportType, 'period_start' => $periodStart, 'period_end' => $periodEnd],
-                $summary
+                $this->capitalRecordValues($attributes)
             );
         });
+    }
+
+    private function capitalRecordValues(array $summary): array
+    {
+        return [
+            'starting_capital' => $summary['starting_capital'],
+            'sales_revenue' => $summary['sales_revenue'],
+            'cacao_costs' => $summary['cacao_costs'],
+            'employee_costs' => $summary['employee_costs'],
+            'operational_expenses' => $summary['operational_expenses'],
+            'total_expenses' => $summary['total_expenses'],
+            'net_profit' => $summary['net_profit'],
+            'remaining_capital' => $summary['remaining_capital'],
+        ];
     }
 
     private function paidOrdersQuery(string $periodStart, string $periodEnd): Builder
