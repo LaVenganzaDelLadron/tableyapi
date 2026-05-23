@@ -26,85 +26,87 @@ use App\Http\Controllers\UsersController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Public Routes
-|--------------------------------------------------------------------------
-*/
-
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-
-/*
-|--------------------------------------------------------------------------
-| Authenticated Routes
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware('auth:sanctum')->group(function (): void {
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-
+Route::prefix('v1')->group(function () {
     /*
     |--------------------------------------------------------------------------
-    | Customer Ecommerce Routes
+    | Public Routes
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('customer')->group(function (): void {
-        Route::post('/cart-items/add', [CartItemsController::class, 'addToCart']);
-        Route::post('/orders/checkout', [OrdersController::class, 'checkout']);
-        Route::patch('/orders/{order}/status', [OrdersController::class, 'updateStatus']);
-
-        Route::apiResource('carts', CartsController::class);
-        Route::apiResource('cart-items', CartItemsController::class);
-        Route::apiResource('orders', OrdersController::class);
-        Route::apiResource('order-items', OrderItemsController::class);
-        Route::apiResource('reviews', ReviewsController::class);
-    });
-
-    Route::apiResource('notifications', NotificationsController::class);
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Routes
+    | Authenticated Routes
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('admin')->group(function (): void {
-        Route::post('/cacao-batches/record-roasting', [CacaoBatchesController::class, 'recordRoasting']);
-        Route::post('/production-batches/record-production', [ProductionBatchesController::class, 'recordProduction']);
+    Route::middleware('auth:sanctum')->group(function (): void {
+        Route::post('/logout', [AuthController::class, 'logout']);
 
-        Route::get('/employee-pay-records/payroll-summary', [EmployeePayRecordsController::class, 'computePayroll']);
-        Route::post('/capital-records/generate-monthly', [CapitalRecordsController::class, 'generateMonthly']);
-        Route::get('/capital-records/summary', [CapitalRecordsController::class, 'summary']);
-        Route::get('/revenue-reports/summary', [RevenueReportsController::class, 'summary']);
-
-        Route::apiResource('users', UsersController::class);
-        Route::apiResource('categories', CategoriesController::class);
-        Route::apiResource('products', ProductsController::class);
-        Route::apiResource('suppliers', SuppliersController::class);
-        Route::apiResource('cacao-purchases', CacaoPurchasesController::class);
-        Route::apiResource('cacao-batches', CacaoBatchesController::class);
-        Route::apiResource('production-batches', ProductionBatchesController::class);
-        Route::apiResource('inventory-logs', InventoryLogsController::class);
-        Route::apiResource('employees', EmployeesController::class);
-        Route::apiResource('employee-attendances', EmployeeAttendancesController::class);
-        Route::apiResource('employee-pay-records', EmployeePayRecordsController::class);
-        Route::apiResource('expenses', ExpensesController::class);
-        Route::apiResource('settings', SettingsController::class);
+        Route::get('/user', function (Request $request) {
+            return $request->user();
+        });
 
         /*
         |--------------------------------------------------------------------------
-        | Analytics And Reports
+        | Customer Ecommerce Routes
         |--------------------------------------------------------------------------
         */
 
-        Route::apiResource('sales-reports', SalesReportsController::class);
-        Route::apiResource('revenue-reports', RevenueReportsController::class);
-        Route::apiResource('capital-records', CapitalRecordsController::class);
+        Route::middleware('customer')->group(function (): void {
+            Route::post('/cart-items/add', [CartItemsController::class, 'addToCart']);
+            Route::post('/orders/checkout', [OrdersController::class, 'checkout']);
+            Route::patch('/orders/{order}/status', [OrdersController::class, 'updateStatus']);
+
+            Route::apiResource('carts', CartsController::class);
+            Route::apiResource('cart-items', CartItemsController::class);
+            Route::apiResource('orders', OrdersController::class);
+            Route::apiResource('order-items', OrderItemsController::class);
+            Route::apiResource('reviews', ReviewsController::class);
+        });
+
+        Route::apiResource('notifications', NotificationsController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Routes
+        |--------------------------------------------------------------------------
+        */
+
+        Route::middleware('admin')->group(function (): void {
+            Route::post('/cacao-batches/record-roasting', [CacaoBatchesController::class, 'recordRoasting']);
+            Route::post('/production-batches/record-production', [ProductionBatchesController::class, 'recordProduction']);
+
+            Route::get('/employee-pay-records/payroll-summary', [EmployeePayRecordsController::class, 'computePayroll']);
+            Route::post('/capital-records/generate-monthly', [CapitalRecordsController::class, 'generateMonthly']);
+            Route::get('/capital-records/summary', [CapitalRecordsController::class, 'summary']);
+            Route::get('/revenue-reports/summary', [RevenueReportsController::class, 'summary']);
+
+            Route::apiResource('users', UsersController::class);
+            Route::apiResource('categories', CategoriesController::class);
+            Route::apiResource('products', ProductsController::class);
+            Route::apiResource('suppliers', SuppliersController::class);
+            Route::apiResource('cacao-purchases', CacaoPurchasesController::class);
+            Route::apiResource('cacao-batches', CacaoBatchesController::class);
+            Route::apiResource('production-batches', ProductionBatchesController::class);
+            Route::apiResource('inventory-logs', InventoryLogsController::class);
+            Route::apiResource('employees', EmployeesController::class);
+            Route::apiResource('employee-attendances', EmployeeAttendancesController::class);
+            Route::apiResource('employee-pay-records', EmployeePayRecordsController::class);
+            Route::apiResource('expenses', ExpensesController::class);
+            Route::apiResource('settings', SettingsController::class);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Analytics And Reports
+            |--------------------------------------------------------------------------
+            */
+
+            Route::apiResource('sales-reports', SalesReportsController::class);
+            Route::apiResource('revenue-reports', RevenueReportsController::class);
+            Route::apiResource('capital-records', CapitalRecordsController::class);
+        });
     });
 });
