@@ -3,14 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\Expenses;
-use App\Services\FinancialReportService;
+use App\Services\FinancialService;
 use Illuminate\Database\Seeder;
 
 class FinanceReportsSeeder extends Seeder
 {
     public function run(): void
     {
-        $financialReportService = app(FinancialReportService::class);
+        $financialReportService = app(FinancialService::class);
         $expenses = [
             ['title' => 'Roasting Gas Refill', 'category' => 'production', 'amount' => 850.00, 'payment_method' => 'cash', 'payee' => 'Tagum Gas Center', 'expense_date' => '2026-05-05', 'notes' => 'Fuel for cacao roasting.'],
             ['title' => 'Grinding Service', 'category' => 'production', 'amount' => 1200.00, 'payment_method' => 'cash', 'payee' => 'Local Milling Service', 'expense_date' => '2026-05-09', 'notes' => 'Grinding roasted cacao nibs.'],

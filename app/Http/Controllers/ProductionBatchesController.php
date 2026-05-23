@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductionBatchesRequest;
 use App\Http\Requests\UpdateProductionBatchesRequest;
-use App\Models\InventoryLogs;
 use App\Models\ProductionBatches;
-use App\Models\Products;
-use App\Services\FinancialReportService;
+use App\Services\FinancialService;
+use App\Services\InventoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +22,7 @@ class ProductionBatchesController extends Controller
         return $this->success('Production batches retrieved successfully.', $batches);
     }
 
-    public function store(StoreProductionBatchesRequest $request, FinancialReportService $financialReportService): JsonResponse
+    public function store(StoreProductionBatchesRequest $request, FinancialService $financialReportService): JsonResponse
     {
         $batch = DB::transaction(function () use ($request, $financialReportService) {
             $batch = ProductionBatches::create($request->validated());
@@ -35,23 +34,17 @@ class ProductionBatchesController extends Controller
         return $this->success('Production batch created successfully.', $batch, 201);
     }
 
-    public function recordProduction(StoreProductionBatchesRequest $request, FinancialReportService $financialReportService): JsonResponse
+    public function recordProduction(
+        StoreProductionBatchesRequest $request,
+        FinancialService $financialReportService,
+        InventoryService $inventoryService
+    ): JsonResponse
     {
-        $batch = DB::transaction(function () use ($request, $financialReportService) {
+        $batch = DB::transaction(function () use ($request, $financialReportService, $inventoryService) {
             $data = $request->validated();
             $batch = ProductionBatches::create($data);
             $financialReportService->syncProductionCost($batch);
-            $product = Products::lockForUpdate()->findOrFail($data['product_id']);
-            $product->increment('stock', (int) $data['packs_produced']);
-
-            InventoryLogs::create([
-                'product_id' => $product->id,
-                'production_batch_id' => $batch->id,
-                'type' => 'production_added',
-                'quantity_change' => (int) $data['packs_produced'],
-                'remaining_stock' => (int) $product->fresh()->stock,
-                'notes' => 'Stock added from production batch.',
-            ]);
+            $inventoryService->recordProductionIncrease($batch);
 
             return $batch->load(self::RELATIONS);
         });
@@ -64,7 +57,7 @@ class ProductionBatchesController extends Controller
         return $this->success('Production batch retrieved successfully.', $productionBatch->load(self::RELATIONS));
     }
 
-    public function update(UpdateProductionBatchesRequest $request, ProductionBatches $productionBatch, FinancialReportService $financialReportService): JsonResponse
+    public function update(UpdateProductionBatchesRequest $request, ProductionBatches $productionBatch, FinancialService $financialReportService): JsonResponse
     {
         $productionBatch = DB::transaction(function () use ($request, $productionBatch, $financialReportService) {
             $productionBatch->update($request->validated());

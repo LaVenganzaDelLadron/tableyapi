@@ -2,18 +2,20 @@
 
 namespace Tests\Feature;
 
-use App\Models\CacaoBatches;
 use App\Models\CacaoPurchases;
 use App\Models\CapitalRecords;
 use App\Models\Categories;
 use App\Models\EmployeePayRecords;
 use App\Models\Expenses;
+use App\Models\InventoryLogs;
 use App\Models\Orders;
 use App\Models\Products;
 use App\Models\ProductionBatches;
-use App\Models\Suppliers;
-use App\Services\FinancialReportService;
+use App\Services\FinancialService;
+use App\Services\InventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class FinancialReportServiceTest extends TestCase
@@ -42,6 +44,15 @@ class FinancialReportServiceTest extends TestCase
             'shipping_address' => 'Tagum City',
             'status' => 'pending',
         ]);
+        Orders::create([
+            'subtotal' => 888888,
+            'shipping_fee' => 0,
+            'total_price' => 888888,
+            'payment_method' => 'gcash',
+            'payment_status' => 'paid',
+            'shipping_address' => 'Tagum City',
+            'status' => 'processing',
+        ]);
         CacaoPurchases::create([
             'kilogram' => 100,
             'price_per_kilogram' => 150,
@@ -65,12 +76,12 @@ class FinancialReportServiceTest extends TestCase
             'expense_date' => '2026-05-15',
         ]);
 
-        $summary = app(FinancialReportService::class)->calculatePeriodSummary('2026-05-01', '2026-05-31', 50000);
+        $summary = app(FinancialService::class)->calculatePeriodSummary('2026-05-01', '2026-05-31', 50000);
 
-        $this->assertSame(100000.0, $summary['sales_revenue']);
-        $this->assertSame(40000.0, $summary['total_expenses']);
-        $this->assertSame(60000.0, $summary['net_profit']);
-        $this->assertSame(110000.0, $summary['remaining_capital']);
+        $this->assertSame('100000.00', $summary['sales_revenue']);
+        $this->assertSame('40000.00', $summary['total_expenses']);
+        $this->assertSame('60000.00', $summary['net_profit']);
+        $this->assertSame('110000.00', $summary['remaining_capital']);
     }
 
     public function test_production_value_is_not_counted_as_revenue(): void
@@ -84,9 +95,16 @@ class FinancialReportServiceTest extends TestCase
             'production_date' => '2026-05-05',
         ]);
 
-        $summary = app(FinancialReportService::class)->calculatePeriodSummary('2026-05-01', '2026-05-31', 0);
+        $summary = app(FinancialService::class)->calculatePeriodSummary('2026-05-01', '2026-05-31', 0);
 
-        $this->assertSame(0.0, $summary['sales_revenue']);
+        $this->assertSame('0.00', $summary['sales_revenue']);
+    }
+
+    public function test_capital_records_table_does_not_contain_redundant_columns(): void
+    {
+        $this->assertFalse(Schema::hasColumn('capital_records', 'total_revenue'));
+        $this->assertFalse(Schema::hasColumn('capital_records', 'final_profit'));
+        $this->assertFalse(Schema::hasColumn('capital_records', 'gross_profit'));
     }
 
     public function test_next_period_inherits_previous_remaining_capital(): void
@@ -100,17 +118,14 @@ class FinancialReportServiceTest extends TestCase
             'cacao_costs' => 15000,
             'employee_costs' => 5000,
             'operational_expenses' => 20000,
-            'total_revenue' => 100000,
             'total_expenses' => 40000,
-            'gross_profit' => 85000,
             'net_profit' => 60000,
             'remaining_capital' => 110000,
-            'final_profit' => 60000,
         ]);
 
-        $summary = app(FinancialReportService::class)->calculatePeriodSummary('2026-06-01', '2026-06-30');
+        $summary = app(FinancialService::class)->calculatePeriodSummary('2026-06-01', '2026-06-30');
 
-        $this->assertSame(110000.0, $summary['starting_capital']);
+        $this->assertSame('110000.00', $summary['starting_capital']);
     }
 
     public function test_inventory_value_uses_cost_per_pack_not_selling_price(): void
@@ -126,9 +141,58 @@ class FinancialReportServiceTest extends TestCase
             'production_date' => '2026-05-05',
         ]);
 
-        $inventory = app(FinancialReportService::class)->calculateInventoryValue($product);
+        $inventory = app(FinancialService::class)->calculateInventoryValue($product);
 
-        $this->assertSame(250.0, $inventory['total_inventory_value']);
+        $this->assertSame('250.00', $inventory['total_inventory_value']);
+    }
+
+    public function test_production_stock_increase_creates_accurate_inventory_log(): void
+    {
+        $product = $this->product(['stock' => 10]);
+        $batch = ProductionBatches::create([
+            'product_id' => $product->id,
+            'packs_produced' => 25,
+            'price_per_pack' => 120,
+            'total_production_value' => 3000,
+            'total_production_cost' => 1250,
+            'cost_per_pack' => 50,
+            'production_date' => '2026-05-05',
+        ]);
+
+        $log = app(InventoryService::class)->recordProductionIncrease($batch);
+
+        $this->assertSame(35, (int) $product->fresh()->stock);
+        $this->assertSame('production_added', $log->type);
+        $this->assertSame(25, (int) $log->quantity_change);
+        $this->assertSame(35, (int) $log->remaining_stock);
+    }
+
+    public function test_order_stock_deduction_creates_accurate_inventory_log(): void
+    {
+        $product = $this->product(['stock' => 30]);
+        $order = $this->order();
+
+        $log = app(InventoryService::class)->recordOrderDeduction($order, $product, 12);
+
+        $this->assertSame(18, (int) $product->fresh()->stock);
+        $this->assertSame('order_deduction', $log->type);
+        $this->assertSame(-12, (int) $log->quantity_change);
+        $this->assertSame(18, (int) $log->remaining_stock);
+    }
+
+    public function test_insufficient_stock_fails_before_order_deduction(): void
+    {
+        $product = $this->product(['stock' => 5]);
+        $order = $this->order();
+
+        $this->expectException(ValidationException::class);
+
+        try {
+            app(InventoryService::class)->recordOrderDeduction($order, $product, 6);
+        } finally {
+            $this->assertSame(5, (int) $product->fresh()->stock);
+            $this->assertSame(0, InventoryLogs::query()->where('order_id', $order->id)->count());
+        }
     }
 
     private function product(array $overrides = []): Products
@@ -156,5 +220,20 @@ class FinancialReportServiceTest extends TestCase
             'rate' => 500,
             'is_active' => true,
         ])->id;
+    }
+
+    private function order(array $overrides = []): Orders
+    {
+        return Orders::create(array_merge([
+            'subtotal' => 1200,
+            'shipping_fee' => 0,
+            'total_price' => 1200,
+            'payment_method' => 'gcash',
+            'payment_status' => 'paid',
+            'payment_reference' => 'TEST-ORDER',
+            'paid_at' => '2026-05-10 09:00:00',
+            'shipping_address' => 'Tagum City',
+            'status' => 'completed',
+        ], $overrides));
     }
 }

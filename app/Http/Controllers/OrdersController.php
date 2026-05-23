@@ -6,14 +6,13 @@ use App\Http\Requests\CheckoutRequest;
 use App\Http\Requests\StoreOrdersRequest;
 use App\Http\Requests\UpdateOrdersRequest;
 use App\Models\CartItems;
-use App\Models\InventoryLogs;
 use App\Models\OrderItems;
 use App\Models\Orders;
 use App\Models\Products;
+use App\Services\InventoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class OrdersController extends Controller
 {
@@ -33,9 +32,9 @@ class OrdersController extends Controller
         return $this->success('Order created successfully.', $order, 201);
     }
 
-    public function checkout(CheckoutRequest $request): JsonResponse
+    public function checkout(CheckoutRequest $request, InventoryService $inventoryService): JsonResponse
     {
-        $order = DB::transaction(function () use ($request) {
+        $order = DB::transaction(function () use ($request, $inventoryService) {
             $data = $request->validated();
             $items = collect($data['items'] ?? []);
             unset($data['items'], $data['cart_id']);
@@ -43,16 +42,10 @@ class OrdersController extends Controller
             $order = Orders::create($data);
 
             foreach ($items as $item) {
-                $product = Products::lockForUpdate()->findOrFail($item['product_id']);
+                $product = Products::query()->findOrFail($item['product_id']);
                 $quantity = (int) $item['quantity'];
                 $price = (float) ($item['price'] ?? $product->price);
                 $subTotal = $quantity * $price;
-
-                if ($product->stock < $quantity) {
-                    throw ValidationException::withMessages([
-                        'items' => ["Insufficient stock for {$product->name}."],
-                    ]);
-                }
 
                 OrderItems::create([
                     'order_id' => $order->id,
@@ -64,16 +57,7 @@ class OrdersController extends Controller
                     'sub_total' => $item['sub_total'] ?? $subTotal,
                 ]);
 
-                $product->decrement('stock', $quantity);
-
-                InventoryLogs::create([
-                    'product_id' => $product->id,
-                    'order_id' => $order->id,
-                    'type' => 'order_deduction',
-                    'quantity_change' => -$quantity,
-                    'remaining_stock' => max(0, (int) $product->fresh()->stock),
-                    'notes' => 'Stock deducted during checkout.',
-                ]);
+                $inventoryService->recordOrderDeduction($order, $product, $quantity);
             }
 
             if ($request->filled('cart_id')) {

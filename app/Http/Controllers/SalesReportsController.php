@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSalesReportsRequest;
 use App\Http\Requests\UpdateSalesReportsRequest;
 use App\Models\SalesReports;
-use App\Services\FinancialReportService;
+use App\Services\FinancialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ class SalesReportsController extends Controller
         return $this->success('Sales reports retrieved successfully.', $reports);
     }
 
-    public function store(StoreSalesReportsRequest $request, FinancialReportService $financialReportService): JsonResponse
+    public function store(StoreSalesReportsRequest $request, FinancialService $financialReportService): JsonResponse
     {
         $report = DB::transaction(function () use ($request, $financialReportService) {
             $data = $request->validated();

@@ -20,12 +20,9 @@ class CapitalRecords extends Model
         'cacao_costs',
         'employee_costs',
         'operational_expenses',
-        'total_revenue',
         'total_expenses',
-        'gross_profit',
         'net_profit',
         'remaining_capital',
-        'final_profit',
     ];
 
     protected function casts(): array
@@ -38,12 +35,9 @@ class CapitalRecords extends Model
             'cacao_costs' => 'decimal:2',
             'employee_costs' => 'decimal:2',
             'operational_expenses' => 'decimal:2',
-            'total_revenue' => 'decimal:2',
             'total_expenses' => 'decimal:2',
-            'gross_profit' => 'decimal:2',
             'net_profit' => 'decimal:2',
             'remaining_capital' => 'decimal:2',
-            'final_profit' => 'decimal:2',
         ];
     }
 }

@@ -29,12 +29,9 @@ class CapitalRecordsFactory extends Factory
             'cacao_costs' => $cacaoCosts,
             'employee_costs' => $employeeCosts,
             'operational_expenses' => $operationalExpenses,
-            'total_revenue' => $revenue,
             'total_expenses' => $expenses,
-            'gross_profit' => round($revenue - $cacaoCosts, 2),
             'net_profit' => $netProfit,
             'remaining_capital' => round($capital + $netProfit, 2),
-            'final_profit' => $netProfit,
         ];
     }
 }

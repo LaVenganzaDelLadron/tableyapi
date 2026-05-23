@@ -7,14 +7,14 @@ use App\Models\EmployeeAttendances;
 use App\Models\EmployeePayRecords;
 use App\Models\Employees;
 use App\Models\ProductionBatches;
-use App\Services\FinancialReportService;
+use App\Services\FinancialService;
 use Illuminate\Database\Seeder;
 
 class EmployeePayrollSeeder extends Seeder
 {
     public function run(): void
     {
-        $financialReportService = app(FinancialReportService::class);
+        $financialReportService = app(FinancialService::class);
         $employees = collect([
             ['name' => 'Alma Bautista', 'position' => 'Roasting Worker', 'payment_type' => 'roasting_per_sack', 'rate' => 100.00, 'phone' => '09976660001', 'address' => 'Barangay Apokon, Tagum City'],
             ['name' => 'Rico Pangan', 'position' => 'Packaging Worker', 'payment_type' => 'commission_per_pack', 'rate' => 2.50, 'phone' => '09976660002', 'address' => 'Barangay Mankilam, Tagum City'],

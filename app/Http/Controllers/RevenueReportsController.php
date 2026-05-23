@@ -6,7 +6,7 @@ use App\Http\Requests\FinancialSummaryRequest;
 use App\Http\Requests\StoreRevenueReportsRequest;
 use App\Http\Requests\UpdateRevenueReportsRequest;
 use App\Models\RevenueReports;
-use App\Services\FinancialReportService;
+use App\Services\FinancialService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +21,7 @@ class RevenueReportsController extends Controller
         return $this->success('Revenue reports retrieved successfully.', $reports);
     }
 
-    public function store(StoreRevenueReportsRequest $request, FinancialReportService $financialReportService): JsonResponse
+    public function store(StoreRevenueReportsRequest $request, FinancialService $financialReportService): JsonResponse
     {
         $report = DB::transaction(function () use ($request, $financialReportService) {
             $data = $request->validated();
@@ -40,7 +40,7 @@ class RevenueReportsController extends Controller
         return $this->success('Revenue report created successfully.', $report, 201);
     }
 
-    public function summary(FinancialSummaryRequest $request, FinancialReportService $financialReportService): JsonResponse
+    public function summary(FinancialSummaryRequest $request, FinancialService $financialReportService): JsonResponse
     {
         $data = $request->validated();
         $periodStart = $data['period_start'] ?? CarbonImmutable::now()->startOfMonth()->toDateString();
