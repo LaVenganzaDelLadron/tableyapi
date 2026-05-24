@@ -20,4 +20,18 @@ class ChatFactory extends Factory
             'last_message_at' => null,
         ];
     }
+
+    public function assigned(?User $admin = null): static
+    {
+        return $this->state(fn (): array => [
+            'admin_id' => ($admin ?? User::factory()->create(['role' => 'admin']))->id,
+        ]);
+    }
+
+    public function forCustomer(User $customer): static
+    {
+        return $this->state(fn (): array => [
+            'customer_id' => $customer->id,
+        ]);
+    }
 }

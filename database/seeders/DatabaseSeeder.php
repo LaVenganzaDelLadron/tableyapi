@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             EcommerceSeeder::class,
             EmployeePayrollSeeder::class,
             FinanceReportsSeeder::class,
+            ChatMessagesSeeder::class,
             NotificationsSeeder::class,
         ]);
     }

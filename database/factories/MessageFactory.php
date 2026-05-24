@@ -23,4 +23,20 @@ class MessageFactory extends Factory
             'read_at' => null,
         ];
     }
+
+    public function read(): static
+    {
+        return $this->state(fn (): array => [
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
+    }
+
+    public function unread(): static
+    {
+        return $this->state(fn (): array => [
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+    }
 }
