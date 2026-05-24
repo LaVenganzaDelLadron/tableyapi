@@ -99,6 +99,15 @@ class ApiFormRequest extends FormRequest
             'items.*.price' => 'order item price',
             'items.*.price_type' => 'order item price type',
             'items.*.sub_total' => 'order item subtotal',
+            'chat_id' => 'chat',
+            'customer_id' => 'customer',
+            'admin_id' => 'admin',
+            'sender_id' => 'sender',
+            'attachment' => 'attachment',
+            'is_read' => 'read status',
+            'read_at' => 'read date',
+            'last_message_at' => 'last message date',
+            'assign_self' => 'assign self',
         ];
     }
 

@@ -6,12 +6,14 @@ use App\Http\Controllers\CacaoPurchasesController;
 use App\Http\Controllers\CapitalRecordsController;
 use App\Http\Controllers\CartItemsController;
 use App\Http\Controllers\CartsController;
+use App\Http\Controllers\ChatsController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\EmployeeAttendancesController;
 use App\Http\Controllers\EmployeePayRecordsController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\ExpensesController;
 use App\Http\Controllers\InventoryLogsController;
+use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\OrderItemsController;
 use App\Http\Controllers\OrdersController;
@@ -70,6 +72,12 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::apiResource('notifications', NotificationsController::class);
+
+        Route::get('/my-chats', [ChatsController::class, 'myChat']);
+        Route::get('/messages/unread/count', [MessagesController::class, 'unreadCount']);
+        Route::patch('/messages/{message}/read', [MessagesController::class, 'markAsRead']);
+        Route::apiResource('chats', ChatsController::class);
+        Route::apiResource('messages', MessagesController::class);
 
         /*
         |--------------------------------------------------------------------------
