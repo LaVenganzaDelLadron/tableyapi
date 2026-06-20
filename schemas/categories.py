@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 
 class Categories(BaseModel):
-    user_id: int
     name: str
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

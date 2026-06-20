@@ -7,7 +7,7 @@ class Products(BaseModel):
     description: str
     price: float
     stock: int
-    image: str
-    status: str
-    created_at: datetime
-    updated_at: datetime
+    image: str | None = None
+    status: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

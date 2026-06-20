@@ -1,22 +1,24 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from api.dependencies import get_current_user, get_db
+from api.dependencies import get_db, require_customer
 from api.responses import bad_request, not_found, success
 from schemas.cart_items import CartItems
-from services.cart_items_service import index, store, show, update, destroy
+from services.cart_items_service import destroy_for_user, index_by_user, show_for_user, store, update
+from services.carts_service import get_or_create_by_user
 
 router = APIRouter()
 
 @router.get("/")
-async def list_cart_items(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    data = index(db, current_user.id)
+async def list_cart_items(db: Session = Depends(get_db), current_user=Depends(require_customer)):
+    data = index_by_user(db, current_user.id)
 
     return success("Cart items fetched successfully", data)
 
 @router.post("/")
-async def create_cart_item(cart_item: CartItems, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    data = store(db, cart_item, current_user.id)
+async def create_cart_item(cart_item: CartItems, db: Session = Depends(get_db), current_user=Depends(require_customer)):
+    cart = get_or_create_by_user(db, current_user.id)
+    data = store(db, cart.id, cart_item.product_id, cart_item.quantity)
 
     if not data:
         bad_request("Failed to create cart item")
@@ -24,8 +26,8 @@ async def create_cart_item(cart_item: CartItems, db: Session = Depends(get_db), 
     return success("Cart item created successfully", data)
 
 @router.get("/{cart_item_id}")
-async def get_cart_item(cart_item_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    data = show(db, cart_item_id, current_user.id)
+async def get_cart_item(cart_item_id: int, db: Session = Depends(get_db), current_user=Depends(require_customer)):
+    data = show_for_user(db, cart_item_id, current_user.id)
 
     if not data:
         not_found("Cart item not found")
@@ -33,8 +35,12 @@ async def get_cart_item(cart_item_id: int, db: Session = Depends(get_db), curren
     return success("Cart item fetched successfully", data)
 
 @router.put("/{cart_item_id}")
-async def update_cart_item(cart_item_id: int, cart_item: CartItems, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    data = update(db, cart_item_id, cart_item, current_user.id)
+async def update_cart_item(cart_item_id: int, cart_item: CartItems, db: Session = Depends(get_db), current_user=Depends(require_customer)):
+    existing = show_for_user(db, cart_item_id, current_user.id)
+    if not existing:
+        not_found("Cart item not found")
+    cart_id = existing["data"].cart_id
+    data = update(db, cart_item_id, cart_id, cart_item.product_id, cart_item.quantity)
 
     if not data:
         not_found("Cart item not found")
@@ -42,8 +48,8 @@ async def update_cart_item(cart_item_id: int, cart_item: CartItems, db: Session 
     return success("Cart item updated successfully", data)
 
 @router.delete("/{cart_item_id}")
-async def delete_cart_item(cart_item_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    data = destroy(db, cart_item_id, current_user.id)
+async def delete_cart_item(cart_item_id: int, db: Session = Depends(get_db), current_user=Depends(require_customer)):
+    data = destroy_for_user(db, cart_item_id, current_user.id)
 
     if not data:
         not_found("Cart item not found")

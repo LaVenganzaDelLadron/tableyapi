@@ -2,10 +2,13 @@ from datetime import datetime
 from pydantic import BaseModel
 
 class Orders(BaseModel):
-    user_id: int
-    information_id: int
+    information_id: int | None = None
     total_amount: float
-    status: str
     payment_method: str
-    created_at: datetime
-    updated_at: datetime
+    status: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class OrderStatusUpdate(BaseModel):
+    status: str

@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float, DateTime
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float
 from core.database import Base
+from models.mixins import TimestampMixin
 
-class Products(Base):
+class Products(TimestampMixin, Base):
     __tablename__ = 'products'
     id = Column(Integer, primary_key=True)
     category_id = Column(Integer, ForeignKey('categories.id'))
@@ -11,5 +12,3 @@ class Products(Base):
     stock = Column(Integer)
     image = Column(String)
     status = Column(String)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)

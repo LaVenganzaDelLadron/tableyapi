@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.users import User
+from models.users import User, UserRole
 
 
 def index(db: Session):
@@ -10,6 +10,27 @@ def index(db: Session):
         "message": "Users found",
         "data": data
     }
+
+
+def index_customers(db: Session):
+    data = db.query(User).filter(User.role == UserRole.CUSTOMER).all()
+    return {
+        "message": "Customers found",
+        "data": data
+    }
+
+
+def update_profile(db: Session, user: User, email: str | None = None, fullname: str | None = None, username: str | None = None):
+    if email is not None:
+        user.email = email
+    if fullname is not None:
+        user.fullname = fullname
+    if username is not None:
+        user.username = username
+
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 def store(db: Session, email: str, fullname: str, username: str, password: str, role: str):

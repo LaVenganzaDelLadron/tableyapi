@@ -1,10 +1,9 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float, DateTime
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float
 
 from core.database import Base
+from models.mixins import TimestampMixin
 
-class Carts(Base):
+class Carts(TimestampMixin, Base):
     __tablename__ = 'carts'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'))
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)

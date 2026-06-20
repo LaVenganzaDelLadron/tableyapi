@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float, DateTime
 from core.database import Base
+from models.mixins import TimestampMixin
 
-class Shipping(Base):
+class Shipping(TimestampMixin, Base):
     __tablename__ = "shipping"
     id = Column(Integer, primary_key=True)
     order_id = Column(Integer, ForeignKey("orders.id"))

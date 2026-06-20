@@ -14,6 +14,14 @@ def index(db: Session):
     }
 
 
+def index_by_user(db: Session, user_id: int):
+    data = db.query(Informations).filter(Informations.user_id == user_id).all()
+    return {
+        "message": "Information found",
+        "data": data
+    }
+
+
 def store(db: Session, user_id: int, phone: str, address: str, city: str, province: str, street: str, postal_code: str):
     if not db.query(User).filter(User.id == user_id).first():
         return  None
@@ -47,8 +55,19 @@ def show(db: Session, information_id: int):
         "data": data
     }
 
-def update(db: Session, user_id: int, phone: str, address: str, city: str, province: str, street: str, postal_code: str):
-    data = db.query(Informations).filter(Informations.id == user_id).first()
+
+def show_for_user(db: Session, information_id: int, user_id: int):
+    data = db.query(Informations).filter(Informations.id == information_id, Informations.user_id == user_id).first()
+
+    if not data:
+        return None
+    return {
+        "message": "Information found",
+        "data": data
+    }
+
+def update(db: Session, information_id: int, phone: str, address: str, city: str, province: str, street: str, postal_code: str):
+    data = db.query(Informations).filter(Informations.id == information_id).first()
 
     if not data:
         return {"message": "Information not found"}
@@ -80,7 +99,6 @@ def destroy(db: Session, information_id: int):
         "message": "Deleted successfully",
         "data": information_id
     }
-
 
 
 

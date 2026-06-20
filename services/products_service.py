@@ -2,8 +2,15 @@ from sqlalchemy.orm import Session
 from models.products import Products
 
 
-def index(db: Session):
-    data = db.query(Products).all()
+def index(db: Session, search: str | None = None):
+    query = db.query(Products)
+    if search:
+        pattern = f"%{search}%"
+        query = query.filter(
+            (Products.name.ilike(pattern)) | (Products.description.ilike(pattern))
+        )
+
+    data = query.all()
     if not data:
         return {"message": "Products not found"}
     return {
@@ -12,7 +19,7 @@ def index(db: Session):
     }
 
 
-def store(db: Session, category_id: int, name: str, description: str, price: float, stock: int, image: str, status: str):
+def store(db: Session, category_id: int, name: str, description: str, price: float, stock: int, image: str | None = None, status: str | None = None):
     data = Products(
         category_id=category_id,
         name=name,
@@ -20,7 +27,7 @@ def store(db: Session, category_id: int, name: str, description: str, price: flo
         price=price,
         stock=stock,
         image=image,
-        status=status,
+        status=status or "active",
     )
 
     db.add(data)
@@ -44,7 +51,7 @@ def show(db: Session, product_id: int):
     }
 
 
-def update(db: Session, product_id: int, category_id: int, name: str, description: str, price: float, stock: int, image: str, status: str):
+def update(db: Session, product_id: int, category_id: int, name: str, description: str, price: float, stock: int, image: str | None = None, status: str | None = None):
     data = db.query(Products).filter(Products.id == product_id).first()
 
     if not data:
@@ -56,7 +63,7 @@ def update(db: Session, product_id: int, category_id: int, name: str, descriptio
     data.price = price
     data.stock = stock
     data.image = image
-    data.status = status
+    data.status = status or data.status
 
     db.commit()
     db.refresh(data)
@@ -79,4 +86,3 @@ def destroy(db: Session, product_id: int):
         "message": "Product deleted successfully",
         "data": product_id
     }
-

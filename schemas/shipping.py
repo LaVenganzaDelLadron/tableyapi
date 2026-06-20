@@ -8,3 +8,5 @@ class Shipping(BaseModel):
     shipping_fee: float
     shipped_at: datetime
     delivered_at: datetime
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

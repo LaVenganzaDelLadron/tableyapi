@@ -12,7 +12,7 @@ def index(db: Session):
     }
 
 def store(db: Session, name: str):
-    if not db.query(Categories).filter(Categories.name == name).first():
+    if db.query(Categories).filter(Categories.name == name).first():
         return None
 
     data = Categories(name=name)
@@ -30,7 +30,7 @@ def show(db: Session, category_id: int):
     data = db.query(Categories).filter(Categories.id == category_id).first()
 
     if not data:
-        return {"message": "Category found successfully", "data": data}
+        return None
     return {
         "message": "Category found",
         "data": data

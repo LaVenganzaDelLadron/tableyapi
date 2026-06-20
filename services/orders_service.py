@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.orders import Orders
+from models.orders import OrderStatus, Orders
 
 
 def index(db: Session):
@@ -12,11 +12,20 @@ def index(db: Session):
     }
 
 
-def store(db: Session, information_id: int, total_amount: float, status: str, payment_method: str):
+def index_by_user(db: Session, user_id: int):
+    data = db.query(Orders).filter(Orders.user_id == user_id).all()
+    return {
+        "message": "Orders found",
+        "data": data,
+    }
+
+
+def store(db: Session, user_id: int, information_id: int | None, total_amount: float, payment_method: str, status: str | None = None):
     data = Orders(
+        user_id=user_id,
         information_id=information_id,
         total_amount=total_amount,
-        status=status,
+        status=status or OrderStatus.PENDING.value,
         payment_method=payment_method,
     )
 
@@ -41,7 +50,18 @@ def show(db: Session, order_id: int):
     }
 
 
-def update(db: Session, order_id: int, information_id: int, total_amount: float, status: str, payment_method: str):
+def show_for_user(db: Session, order_id: int, user_id: int):
+    data = db.query(Orders).filter(Orders.id == order_id, Orders.user_id == user_id).first()
+
+    if not data:
+        return None
+    return {
+        "message": "Order found",
+        "data": data
+    }
+
+
+def update(db: Session, order_id: int, information_id: int | None, total_amount: float, status: str, payment_method: str):
     data = db.query(Orders).filter(Orders.id == order_id).first()
 
     if not data:
@@ -57,6 +77,25 @@ def update(db: Session, order_id: int, information_id: int, total_amount: float,
 
     return {
         "message": "Order updated successfully",
+        "data": data
+    }
+
+
+def update_status(db: Session, order_id: int, status: str):
+    allowed_statuses = {item.value for item in OrderStatus}
+    if status not in allowed_statuses:
+        return None
+
+    data = db.query(Orders).filter(Orders.id == order_id).first()
+    if not data:
+        return None
+
+    data.status = status
+    db.commit()
+    db.refresh(data)
+
+    return {
+        "message": "Order status updated successfully",
         "data": data
     }
 

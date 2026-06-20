@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey
 from core.database import Base
+from models.mixins import TimestampMixin
 
-class Informations(Base):
+class Informations(TimestampMixin, Base):
     __tablename__ = "informations"
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"))
@@ -11,5 +12,3 @@ class Informations(Base):
     province = Column(String)
     street = Column(String)
     postal_code = Column(String)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
