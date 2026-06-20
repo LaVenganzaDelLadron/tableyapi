@@ -9,7 +9,7 @@ class OrderStatus(enum.Enum):
 class Orders(Base):
     __tablename__ = "orders"
     id = Column(Integer, primary_key=True)
-    information_id = Column(Integer, ForeignKey('information.id'))
+    information_id = Column(Integer, ForeignKey('informations.id'))
     total_amount = Column(Float)
     status = Column(String, default=OrderStatus.ACTIVE)
     payment_method = Column(String)
