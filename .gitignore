@@ -1,32 +1,3 @@
-# Environment variables
 .env
-
-# Virtual environments
-.venv/
-venv/
-
-# IDE files
-.idea/
-.vscode/
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-
-# Pytest
-.pytest_cache/
-
-# Mypy
-.mypy_cache/
-
-# Logs
-*.log
-
-# SQLite databases
-*.db
-*.sqlite3
-
-# OS files
-.DS_Store
-Thumbs.db
+.env.backup
+.env.production
