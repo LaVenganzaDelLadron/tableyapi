@@ -44,6 +44,10 @@ async def get_order(order_id: int, db: Session = Depends(get_db), current_user=D
 
 @router.put("/{order_id}")
 async def update_order(order_id: int, order: Orders, db: Session = Depends(get_db), current_user=Depends(require_admin)):
+    existing = show(db, order_id)
+    if not existing:
+        not_found("Order not found")
+
     # status changes are constrained by the service.
     data = update(
         db,
@@ -55,7 +59,7 @@ async def update_order(order_id: int, order: Orders, db: Session = Depends(get_d
     )
 
     if not data:
-        not_found("Order not found")
+        bad_request("Invalid order status transition")
 
     return success("Order updated successfully", data)
 

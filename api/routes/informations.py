@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from api.dependencies import get_db, require_customer
 from api.responses import bad_request, not_found, success
 from schemas.informations import Informations
-from services.informations_service import destroy, index_by_user, show_for_user, store, update
+from services.informations_service import destroy_for_user, index_by_user, show_for_user, store, update_for_user
 
 
 router = APIRouter()
@@ -44,12 +44,10 @@ async def get_information(information_id: int, db: Session = Depends(get_db), cu
 
 @router.put("/{information_id}")
 async def update_information(information_id: int, information: Informations, db: Session = Depends(get_db), current_user=Depends(require_customer)):
-    existing = show_for_user(db, information_id, current_user.id)
-    if not existing:
-        not_found("Information not found")
-    data = update(
+    data = update_for_user(
         db,
         information_id,
+        current_user.id,
         information.phone,
         information.address,
         information.city,
@@ -65,10 +63,7 @@ async def update_information(information_id: int, information: Informations, db:
 
 @router.delete("/{information_id}")
 async def delete_information(information_id: int, db: Session = Depends(get_db), current_user=Depends(require_customer)):
-    existing = show_for_user(db, information_id, current_user.id)
-    if not existing:
-        not_found("Information not found")
-    data = destroy(db, information_id)
+    data = destroy_for_user(db, information_id, current_user.id)
 
     if not data:
         not_found("Information not found")

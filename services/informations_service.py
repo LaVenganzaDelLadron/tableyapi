@@ -4,22 +4,11 @@ from models.users import User
 
 
 def index(db: Session):
-    data = db.query(Informations).all()
-    if not data:
-        return {"message": "Information not found"}
-
-    return {
-        "message": "Information found",
-        "data": data
-    }
+    return db.query(Informations).all()
 
 
 def index_by_user(db: Session, user_id: int):
-    data = db.query(Informations).filter(Informations.user_id == user_id).all()
-    return {
-        "message": "Information found",
-        "data": data
-    }
+    return db.query(Informations).filter(Informations.user_id == user_id).all()
 
 
 def store(db: Session, user_id: int, phone: str, address: str, city: str, province: str, street: str, postal_code: str):
@@ -40,37 +29,24 @@ def store(db: Session, user_id: int, phone: str, address: str, city: str, provin
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "Information created successfully",
-        "data": data
-    }
+    return data
 
 def show(db: Session, information_id: int):
     data = db.query(Informations).filter(Informations.id == information_id).first()
 
-    if not data:
-        return {"message": "Information not found"}
-    return {
-        "message": "Information found",
-        "data": data
-    }
+    return data
 
 
 def show_for_user(db: Session, information_id: int, user_id: int):
     data = db.query(Informations).filter(Informations.id == information_id, Informations.user_id == user_id).first()
 
-    if not data:
-        return None
-    return {
-        "message": "Information found",
-        "data": data
-    }
+    return data
 
 def update(db: Session, information_id: int, phone: str, address: str, city: str, province: str, street: str, postal_code: str):
     data = db.query(Informations).filter(Informations.id == information_id).first()
 
     if not data:
-        return {"message": "Information not found"}
+        return None
 
     data.phone = phone
     data.address = address
@@ -82,23 +58,45 @@ def update(db: Session, information_id: int, phone: str, address: str, city: str
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "Information updated successfully",
-        "data": data
-    }
+    return data
+
+
+def update_for_user(db: Session, information_id: int, user_id: int, phone: str, address: str, city: str, province: str, street: str, postal_code: str):
+    data = db.query(Informations).filter(Informations.id == information_id, Informations.user_id == user_id).first()
+
+    if not data:
+        return None
+
+    data.phone = phone
+    data.address = address
+    data.city = city
+    data.province = province
+    data.street = street
+    data.postal_code = postal_code
+
+    db.commit()
+    db.refresh(data)
+    return data
 
 def destroy(db: Session, information_id: int):
     data = db.query(Informations).filter(Informations.id == information_id).first()
 
     if not data:
-        return {"message": "Failed to delete"}
+        return None
 
     db.delete(data)
     db.commit()
-    return {
-        "message": "Deleted successfully",
-        "data": information_id
-    }
+    return information_id
 
+
+def destroy_for_user(db: Session, information_id: int, user_id: int):
+    data = db.query(Informations).filter(Informations.id == information_id, Informations.user_id == user_id).first()
+
+    if not data:
+        return None
+
+    db.delete(data)
+    db.commit()
+    return information_id
 
 

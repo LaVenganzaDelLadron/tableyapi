@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from api.dependencies import get_db, require_admin
 from api.responses import bad_request, not_found, success
 from schemas.shipping import Shipping
-from services.shipping_service import index, store, show, update, destroy
+from services.orders_service import show as show_order
+from services.shipping_service import create_or_update_shipping, destroy, index, show
 
 
 router = APIRouter()
@@ -18,10 +19,14 @@ async def list_shipping(db: Session = Depends(get_db), current_user=Depends(requ
 
 @router.post("/")
 async def create_shipping(shipping: Shipping, db: Session = Depends(get_db), current_user=Depends(require_admin)):
-    data = store(db, shipping.order_id, shipping.courier_id, shipping.tracking_number, shipping.shipping_fee, shipping.shipped_at, shipping.delivered_at)
+    order = show_order(db, shipping.order_id)
+    if not order:
+        not_found("Order not found")
+
+    data = create_or_update_shipping(order, shipping, db)
 
     if not data:
-        bad_request("Failed to create shipping")
+        bad_request("Invalid shipping update for current order state")
 
     return success("Shipping created successfully", data)
 
@@ -36,10 +41,20 @@ async def get_shipping(shipping_id: int, db: Session = Depends(get_db), current_
 
 @router.put("/{shipping_id}")
 async def update_shipping(shipping_id: int, shipping: Shipping, db: Session = Depends(get_db), current_user=Depends(require_admin)):
-    data = update(db, shipping_id, shipping.order_id, shipping.courier_id, shipping.tracking_number, shipping.shipping_fee, shipping.shipped_at, shipping.delivered_at)
+    existing = show(db, shipping_id)
+    if not existing:
+        not_found("Shipping not found")
+    if existing.order_id != shipping.order_id:
+        bad_request("Shipping order cannot be changed")
+
+    order = show_order(db, shipping.order_id)
+    if not order:
+        not_found("Order not found")
+
+    data = create_or_update_shipping(order, shipping, db)
 
     if not data:
-        not_found("Shipping not found")
+        bad_request("Invalid shipping update for current order state")
 
     return success("Shipping updated successfully", data)
 

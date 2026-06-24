@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from api.dependencies import get_db, require_customer
 from api.responses import bad_request, not_found, success
 from schemas.cart_items import CartItems
-from services.cart_items_service import destroy_for_user, index_by_user, show_for_user, store, update
+from services.cart_items_service import destroy_for_user, index_by_user, show_for_user, store, update_for_user
 from services.carts_service import get_or_create_by_user
 
 router = APIRouter()
@@ -36,11 +36,7 @@ async def get_cart_item(cart_item_id: int, db: Session = Depends(get_db), curren
 
 @router.put("/{cart_item_id}")
 async def update_cart_item(cart_item_id: int, cart_item: CartItems, db: Session = Depends(get_db), current_user=Depends(require_customer)):
-    existing = show_for_user(db, cart_item_id, current_user.id)
-    if not existing:
-        not_found("Cart item not found")
-    cart_id = existing["data"].cart_id
-    data = update(db, cart_item_id, cart_id, cart_item.product_id, cart_item.quantity)
+    data = update_for_user(db, cart_item_id, current_user.id, cart_item.product_id, cart_item.quantity)
 
     if not data:
         not_found("Cart item not found")

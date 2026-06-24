@@ -3,21 +3,11 @@ from models.carts import Carts
 
 
 def index(db: Session):
-    data = db.query(Carts).all()
-    if not data:
-        return {"message": "Carts not found"}
-    return {
-        "message": "Carts found",
-        "data": data
-    }
+    return db.query(Carts).all()
 
 
 def index_by_user(db: Session, user_id: int):
-    data = db.query(Carts).filter(Carts.user_id == user_id).all()
-    return {
-        "message": "Carts found",
-        "data": data,
-    }
+    return db.query(Carts).filter(Carts.user_id == user_id).all()
 
 
 def get_or_create_by_user(db: Session, user_id: int):
@@ -41,60 +31,52 @@ def store(db: Session, user_id: int):
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "Cart created successfully",
-        "data": data
-    }
+    return data
 
 
 def show(db: Session, cart_id: int):
     data = db.query(Carts).filter(Carts.id == cart_id).first()
 
-    if not data:
-        return {"message": "Cart not found"}
-    return {
-        "message": "Cart found",
-        "data": data
-    }
+    return data
 
 
 def show_for_user(db: Session, cart_id: int, user_id: int):
     data = db.query(Carts).filter(Carts.id == cart_id, Carts.user_id == user_id).first()
 
-    if not data:
-        return None
-    return {
-        "message": "Cart found",
-        "data": data
-    }
+    return data
 
 
 def update(db: Session, cart_id: int, user_id: int):
-    data = db.query(Carts).filter(Carts.id == cart_id).first()
+    data = db.query(Carts).filter(Carts.id == cart_id, Carts.user_id == user_id).first()
 
     if not data:
-        return {"message": "Cart not found"}
+        return None
 
     data.user_id = user_id
 
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "Cart updated successfully",
-        "data": data
-    }
+    return data
 
 
 def destroy(db: Session, cart_id: int):
     data = db.query(Carts).filter(Carts.id == cart_id).first()
 
     if not data:
-        return {"message": "Cart not found"}
+        return None
 
     db.delete(data)
     db.commit()
-    return {
-        "message": "Cart deleted successfully",
-        "data": cart_id
-    }
+    return cart_id
+
+
+def destroy_for_user(db: Session, cart_id: int, user_id: int):
+    data = db.query(Carts).filter(Carts.id == cart_id, Carts.user_id == user_id).first()
+
+    if not data:
+        return None
+
+    db.delete(data)
+    db.commit()
+    return cart_id

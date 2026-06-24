@@ -70,12 +70,12 @@ async def admin_update_product_stock(product_id: int, stock: int, db: Session = 
     if not data:
         not_found("Product not found")
 
-    product = data["data"]
+    product = data
     product.stock = stock
     db.commit()
     db.refresh(product)
 
-    return success("Product stock updated successfully", {"data": product})
+    return success("Product stock updated successfully", product)
 
 
 @router.delete("/products/{product_id}")
@@ -150,9 +150,13 @@ async def admin_get_order(order_id: int, db: Session = Depends(get_db)):
 
 @router.patch("/orders/{order_id}/status")
 async def admin_update_order_status(order_id: int, payload: OrderStatusUpdate, db: Session = Depends(get_db)):
+    existing = show_order(db, order_id)
+    if not existing:
+        not_found("Order not found")
+
     data = update_status(db, order_id, payload.status)
     if not data:
-        bad_request("Invalid status or order not found")
+        bad_request("Invalid order status transition")
 
     return success("Order status updated successfully", data)
 
@@ -163,7 +167,7 @@ async def admin_sales_report(db: Session = Depends(get_db)):
     total_sales = db.query(func.coalesce(func.sum(Orders.total_amount), 0)).scalar() or 0
     delivered_sales = (
         db.query(func.coalesce(func.sum(Orders.total_amount), 0))
-        .filter(Orders.status == OrderStatus.DELIVERED.value)
+        .filter(Orders.status == OrderStatus.COMPLETED.value)
         .scalar()
         or 0
     )

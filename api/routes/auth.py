@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 from api.dependencies import get_current_user, get_db
+from api.responses import success
 from schemas.users import ChangePassword, CreateUser, LoginUser, UpdateProfile
 from services.auth_service import change_password as change_password_service
 from services.auth_service import create_access_token, login as login_service
@@ -20,9 +21,7 @@ async def register(user: CreateUser, db: Session = Depends(get_db)):
     if not result:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists")
 
-    return {
-        "message": "User registered successfully",
-    }
+    return success("User registered successfully")
 
 
 @router.post("/login")
@@ -34,41 +33,37 @@ async def login(user: LoginUser, db: Session = Depends(get_db)):
 
     token = create_access_token(result.id, result.username, result.role)
 
-    return {
-        "message": "Login successful",
-        "data": result,
-        "session": token,
-    }
+    return success("Login successful", {"user": result, "session": token})
 
 
 @router.post("/logout")
 async def logout():
-    return {"message": "Logout successful"}
+    return success("Logout successful")
 
 
 @router.get("/me")
 async def me(current_user=Depends(get_current_user)):
-    return {
+    return success("User fetched successfully", {
         "id": current_user.id,
         "email": current_user.email,
         "full_name": current_user.fullname,
         "username": current_user.username,
         "role": getattr(current_user.role, "value", current_user.role),
-    }
+    })
 
 
 @router.put("/me")
 async def update_me(profile: UpdateProfile, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     user = update_profile(db, current_user, profile.email, profile.full_name, profile.username)
-    return {
-        "message": "Profile updated successfully",
-        "data": {
+    return success(
+        "Profile updated successfully",
+        {
             "id": user.id,
             "email": user.email,
             "full_name": user.fullname,
             "username": user.username,
         },
-    }
+    )
 
 
 @router.post("/change-password")
@@ -77,8 +72,7 @@ async def change_password(payload: ChangePassword, db: Session = Depends(get_db)
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
 
-    return {"message": "Password changed successfully"}
-
+    return success("Password changed successfully")
 
 
 

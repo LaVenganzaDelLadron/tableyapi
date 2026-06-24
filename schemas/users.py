@@ -1,15 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CreateUser(BaseModel):
-    email: str
-    full_name: str
-    username: str
-    password: str
+    email: str = Field(min_length=1)
+    full_name: str = Field(min_length=1)
+    username: str = Field(min_length=1)
+    password: str = Field(min_length=6)
 
 
 class LoginUser(BaseModel):
-    email: str
+    email: str = Field(min_length=1)
     password: str
 
 
@@ -22,4 +22,3 @@ class UpdateProfile(BaseModel):
 class ChangePassword(BaseModel):
     current_password: str
     new_password: str
-

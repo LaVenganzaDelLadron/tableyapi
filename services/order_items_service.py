@@ -3,13 +3,7 @@ from models.order_items import OrderItems
 
 
 def index(db: Session):
-    data = db.query(OrderItems).all()
-    if not data:
-        return {"message": "Order items not found"}
-    return {
-        "message": "Order items found",
-        "data": data
-    }
+    return db.query(OrderItems).all()
 
 
 def store(db: Session, order_id: int, product_id: int, quantity: int, price: float):
@@ -25,21 +19,13 @@ def store(db: Session, order_id: int, product_id: int, quantity: int, price: flo
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "Order item created successfully",
-        "data": data
-    }
+    return data
 
 
 def show(db: Session, order_item_id: int):
     data = db.query(OrderItems).filter(OrderItems.id == order_item_id).first()
 
-    if not data:
-        return {"message": "Order item not found"}
-    return {
-        "message": "Order item found",
-        "data": data
-    }
+    return data
 
 
 def update(db: Session, order_item_id: int, order_id: int, product_id: int, quantity: int, price: float):
@@ -47,7 +33,7 @@ def update(db: Session, order_item_id: int, order_id: int, product_id: int, quan
 
 
     if not data:
-        return {"message": "Order item not found"}
+        return None
 
     data.order_id = order_id
     data.product_id = product_id
@@ -57,21 +43,15 @@ def update(db: Session, order_item_id: int, order_id: int, product_id: int, quan
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "Order item updated successfully",
-        "data": data
-    }
+    return data
 
 
 def destroy(db: Session, order_item_id: int):
     data = db.query(OrderItems).filter(OrderItems.id == order_item_id).first()
 
     if not data:
-        return {"message": "Order item not found"}
+        return None
 
     db.delete(data)
     db.commit()
-    return {
-        "message": "Order item deleted successfully",
-        "data": order_item_id
-    }
+    return order_item_id

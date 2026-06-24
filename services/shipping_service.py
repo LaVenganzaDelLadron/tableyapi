@@ -1,15 +1,10 @@
 from sqlalchemy.orm import Session
+from models.orders import Orders, OrderStatus
 from models.shipping import Shipping
 
 
 def index(db: Session):
-    data = db.query(Shipping).all()
-    if not data:
-        return {"message": "Shipping records not found"}
-    return {
-        "message": "Shipping records found",
-        "data": data
-    }
+    return db.query(Shipping).all()
 
 
 def store(db: Session, order_id: int, courier_id: str, tracking_number: str, shipping_fee: float, shipped_at, delivered_at):
@@ -26,28 +21,20 @@ def store(db: Session, order_id: int, courier_id: str, tracking_number: str, shi
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "Shipping record created successfully",
-        "data": data
-    }
+    return data
 
 
 def show(db: Session, shipping_id: int):
     data = db.query(Shipping).filter(Shipping.id == shipping_id).first()
 
-    if not data:
-        return {"message": "Shipping record not found"}
-    return {
-        "message": "Shipping record found",
-        "data": data
-    }
+    return data
 
 
 def update(db: Session, shipping_id: int, order_id: int, courier_id: str, tracking_number: str, shipping_fee: float, shipped_at, delivered_at):
     data = db.query(Shipping).filter(Shipping.id == shipping_id).first()
 
     if not data:
-        return {"message": "Shipping record not found"}
+        return None
 
     data.order_id = order_id
     data.courier_id = courier_id
@@ -59,21 +46,43 @@ def update(db: Session, shipping_id: int, order_id: int, courier_id: str, tracki
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "Shipping record updated successfully",
-        "data": data
-    }
+    return data
 
 
 def destroy(db: Session, shipping_id: int):
     data = db.query(Shipping).filter(Shipping.id == shipping_id).first()
 
     if not data:
-        return {"message": "Shipping record not found"}
+        return None
 
     db.delete(data)
     db.commit()
-    return {
-        "message": "Shipping record deleted successfully",
-        "data": shipping_id
-    }
+    return shipping_id
+
+
+def create_or_update_shipping(order: Orders, shipping_payload, db: Session) -> Shipping | None:
+    if order.status not in {OrderStatus.PAID.value, OrderStatus.SHIPPED.value}:
+        return None
+
+    data = db.query(Shipping).filter(Shipping.order_id == order.id).first()
+    if not data:
+        data = Shipping(order_id=order.id)
+        db.add(data)
+
+    data.courier_id = shipping_payload.courier_id
+    data.tracking_number = shipping_payload.tracking_number
+    data.shipping_fee = shipping_payload.shipping_fee
+    data.shipped_at = shipping_payload.shipped_at
+    data.delivered_at = shipping_payload.delivered_at
+
+    if data.delivered_at:
+        if order.status != OrderStatus.SHIPPED.value:
+            return None
+        order.status = OrderStatus.COMPLETED.value
+    elif data.shipped_at and order.status == OrderStatus.PAID.value:
+        order.status = OrderStatus.SHIPPED.value
+
+    db.commit()
+    db.refresh(data)
+    db.refresh(order)
+    return data

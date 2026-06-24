@@ -3,21 +3,11 @@ from models.users import User, UserRole
 
 
 def index(db: Session):
-    data = db.query(User).all()
-    if not data:
-        return {"message": "Users not found"}
-    return {
-        "message": "Users found",
-        "data": data
-    }
+    return db.query(User).all()
 
 
 def index_customers(db: Session):
-    data = db.query(User).filter(User.role == UserRole.CUSTOMER).all()
-    return {
-        "message": "Customers found",
-        "data": data
-    }
+    return db.query(User).filter(User.role == UserRole.CUSTOMER).all()
 
 
 def update_profile(db: Session, user: User, email: str | None = None, fullname: str | None = None, username: str | None = None):
@@ -46,28 +36,20 @@ def store(db: Session, email: str, fullname: str, username: str, password: str, 
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "User created successfully",
-        "data": data
-    }
+    return data
 
 
 def show(db: Session, user_id: int):
     data = db.query(User).filter(User.id == user_id).first()
 
-    if not data:
-        return {"message": "User not found"}
-    return {
-        "message": "User found",
-        "data": data
-    }
+    return data
 
 
 def update(db: Session, user_id: int, email: str, fullname: str, username: str, password: str, role: str):
     data = db.query(User).filter(User.id == user_id).first()
 
     if not data:
-        return {"message": "User not found"}
+        return None
 
     data.email = email
     data.fullname = fullname
@@ -78,21 +60,15 @@ def update(db: Session, user_id: int, email: str, fullname: str, username: str, 
     db.commit()
     db.refresh(data)
 
-    return {
-        "message": "User updated successfully",
-        "data": data
-    }
+    return data
 
 
 def destroy(db: Session, user_id: int):
     data = db.query(User).filter(User.id == user_id).first()
 
     if not data:
-        return {"message": "User not found"}
+        return None
 
     db.delete(data)
     db.commit()
-    return {
-        "message": "User deleted successfully",
-        "data": user_id
-    }
+    return user_id

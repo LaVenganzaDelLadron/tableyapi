@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from api.handlers import register_exception_handlers
+from api.responses import error_payload
 from core.database import Base, engine
 from core.schema_migrations import ensure_scan_columns
 
@@ -29,6 +31,7 @@ Base.metadata.create_all(bind=engine)
 ensure_scan_columns(engine)
 
 app = FastAPI(title="TableyApi", version="1.0.0")
+register_exception_handlers(app)
 
 
 load_dotenv()
@@ -65,7 +68,11 @@ async def request_timeout_middleware(request: Request, call_next):
     except asyncio.TimeoutError:
         return JSONResponse(
             status_code=504,
-            content={"detail": f"Request exceeded {REQUEST_HARD_TIMEOUT:.0f}s timeout"},
+            content=error_payload(
+                "Request timed out",
+                "REQUEST_TIMEOUT",
+                f"Request exceeded {REQUEST_HARD_TIMEOUT:.0f}s timeout",
+            ),
         )
 
 

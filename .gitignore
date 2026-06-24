@@ -1,3 +1,41 @@
+# Environment / secrets
 .env
-.env.backup
-.env.production
+.env.*
+!.env.example
+!.env*.example
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test / coverage output
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local databases and generated storage
+*.db
+*.sqlite
+*.sqlite3
+storage/*.db
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+tmp/
