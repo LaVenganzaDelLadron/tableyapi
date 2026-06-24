@@ -14,6 +14,7 @@ def index(db: Session):
 
 def store(db: Session, order_id: int, product_id: int, quantity: int, price: float):
     data = OrderItems(
+
         order_id=order_id,
         product_id=product_id,
         quantity=quantity,
@@ -43,6 +44,7 @@ def show(db: Session, order_item_id: int):
 
 def update(db: Session, order_item_id: int, order_id: int, product_id: int, quantity: int, price: float):
     data = db.query(OrderItems).filter(OrderItems.id == order_item_id).first()
+
 
     if not data:
         return {"message": "Order item not found"}

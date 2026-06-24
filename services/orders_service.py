@@ -1,5 +1,9 @@
 from sqlalchemy.orm import Session
-from models.orders import OrderStatus, Orders
+
+from models.orders import Orders, OrderStatus
+from schemas.order_status import OrderStatus as OrderStatusSchema
+
+
 
 
 def index(db: Session):
@@ -69,35 +73,78 @@ def update(db: Session, order_id: int, information_id: int | None, total_amount:
 
     data.information_id = information_id
     data.total_amount = total_amount
-    data.status = status
-    data.payment_method = payment_method
 
+    # Only allow constrained status changes.
+    transition = change_order_status(db, order_id=order_id, new_status=status)
+    if transition is None:
+        return None
+
+    # re-load to attach payment_method
+    data = db.query(Orders).filter(Orders.id == order_id).first()
+    if not data:
+        return None
+
+    data.payment_method = payment_method
     db.commit()
     db.refresh(data)
 
     return {
         "message": "Order updated successfully",
-        "data": data
+        "data": data,
     }
 
 
-def update_status(db: Session, order_id: int, status: str):
-    allowed_statuses = {item.value for item in OrderStatus}
-    if status not in allowed_statuses:
+
+
+def _allowed_status_values() -> set[str]:
+    return {s.value for s in OrderStatusSchema}
+
+
+def _can_transition(current: str, new: str) -> bool:
+    # Constrained lifecycle transitions.
+    # PENDING -> PAID -> SHIPPED -> COMPLETED
+    # PENDING/PAID -> CANCELLED
+    if current == new:
+        return False
+
+    transitions: dict[str, set[str]] = {
+        "PENDING": {"PAID", "CANCELLED"},
+        "PAID": {"SHIPPED", "CANCELLED"},
+        "SHIPPED": {"COMPLETED"},
+        "COMPLETED": set(),
+        "CANCELLED": set(),
+    }
+    return new in transitions.get(current, set())
+
+
+def change_order_status(db: Session, order_id: int, new_status: str):
+    if new_status not in _allowed_status_values():
         return None
 
     data = db.query(Orders).filter(Orders.id == order_id).first()
     if not data:
         return None
 
-    data.status = status
+    current_status = data.status
+    if current_status not in _allowed_status_values():
+        return None
+
+    if not _can_transition(current=current_status, new=new_status):
+        return None
+
+    data.status = new_status
     db.commit()
     db.refresh(data)
 
     return {
         "message": "Order status updated successfully",
-        "data": data
+        "data": data,
     }
+
+
+def update_status(db: Session, order_id: int, status: str):
+    return change_order_status(db, order_id=order_id, new_status=status)
+
 
 
 def destroy(db: Session, order_id: int):

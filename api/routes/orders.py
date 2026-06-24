@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from api.dependencies import get_db, require_admin, require_customer
 from api.responses import bad_request, not_found, success
 from schemas.orders import Orders
+from models.orders import OrderStatus
+
 from services.orders_service import destroy, index, index_by_user, show, show_for_user, store, update
 
 
@@ -42,12 +44,22 @@ async def get_order(order_id: int, db: Session = Depends(get_db), current_user=D
 
 @router.put("/{order_id}")
 async def update_order(order_id: int, order: Orders, db: Session = Depends(get_db), current_user=Depends(require_admin)):
-    data = update(db, order_id, order.information_id, order.total_amount, order.status, order.payment_method)
+    # status changes are constrained by the service.
+    data = update(
+        db,
+        order_id,
+        order.information_id,
+        order.total_amount,
+        order.status.value if order.status else OrderStatus.PENDING.value,
+        order.payment_method,
+    )
 
     if not data:
         not_found("Order not found")
 
     return success("Order updated successfully", data)
+
+
 
 @router.delete("/{order_id}")
 async def delete_order(order_id: int, db: Session = Depends(get_db), current_user=Depends(require_admin)):

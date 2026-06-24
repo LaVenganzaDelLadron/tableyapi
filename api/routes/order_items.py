@@ -17,6 +17,7 @@ async def list_order_items(db: Session = Depends(get_db), current_user=Depends(r
 
 @router.post("/")
 async def create_order_item(order_item: OrderItems, db: Session = Depends(get_db), current_user=Depends(require_admin)):
+
     data = store(db, order_item.order_id, order_item.product_id, order_item.quantity, order_item.price)
 
     if not data:

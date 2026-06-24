@@ -4,11 +4,12 @@ from core.database import Base
 from models.mixins import TimestampMixin
 
 class OrderStatus(enum.Enum):
-    PENDING = "Pending"
-    PROCESSING = "Processing"
-    SHIPPED = "Shipped"
-    DELIVERED = "Delivered"
-    CANCELLED = "Cancelled"
+    PENDING = "PENDING"
+    PAID = "PAID"
+    SHIPPED = "SHIPPED"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+
 
 class Orders(TimestampMixin, Base):
     __tablename__ = "orders"
