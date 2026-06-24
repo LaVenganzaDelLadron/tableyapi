@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from api.pagination import paginate
 from models.users import User, UserRole
 
 
@@ -6,8 +7,17 @@ def index(db: Session):
     return db.query(User).all()
 
 
-def index_customers(db: Session):
-    return db.query(User).filter(User.role == UserRole.CUSTOMER).all()
+def index_customers(db: Session, page: int | None = None, limit: int | None = None, search: str | None = None):
+    query = db.query(User).filter(User.role == UserRole.CUSTOMER)
+    if search:
+        pattern = f"%{search}%"
+        query = query.filter(
+            (User.email.ilike(pattern)) | (User.fullname.ilike(pattern)) | (User.username.ilike(pattern))
+        )
+    query = query.order_by(User.id.desc())
+    if page is not None or limit is not None:
+        return paginate(query, page or 1, limit or 20)
+    return query.all()
 
 
 def update_profile(db: Session, user: User, email: str | None = None, fullname: str | None = None, username: str | None = None):

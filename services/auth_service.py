@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
+from models.password_resets import PasswordResets
 from models.users import User, UserRole
 
 
@@ -98,6 +99,49 @@ def change_password(db: Session, user: User, current_password: str, new_password
         return None
 
     user.password = hash_password(new_password)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def _token_hash(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def create_password_reset(db: Session, email: str, expires_minutes: int = 30):
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        return None
+
+    token = secrets.token_urlsafe(32)
+    reset = PasswordResets(
+        user_id=user.id,
+        token_hash=_token_hash(token),
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=expires_minutes),
+    )
+    db.add(reset)
+    db.commit()
+    db.refresh(reset)
+    return token
+
+
+def reset_password(db: Session, token: str, new_password: str):
+    reset = db.query(PasswordResets).filter(PasswordResets.token_hash == _token_hash(token)).first()
+    if not reset or reset.used_at is not None:
+        return None
+
+    expires_at = reset.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        return None
+
+    user = db.query(User).filter(User.id == reset.user_id).first()
+    if not user:
+        return None
+
+    user.password = hash_password(new_password)
+    reset.used_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(user)
     return user

@@ -11,6 +11,10 @@ from api.responses import error_payload
 from core.database import Base, engine
 from core.schema_migrations import ensure_scan_columns
 
+from models.audit_logs import AuditLogs
+from models.customer_addresses import CustomerAddresses
+from models.order_status_history import OrderStatusHistory
+from models.password_resets import PasswordResets
 
 from api.routes.auth import router as auth_router
 from api.routes.admin import router as admin_router
@@ -23,6 +27,7 @@ from api.routes.orders import router as orders_router
 from api.routes.payments import router as payments_router
 from api.routes.products import router as products_router
 from api.routes.shipping import router as shipping_router
+from api.routes.customer_addresses import router as customer_addresses_router
 
 
 
@@ -89,6 +94,7 @@ app.include_router(categories_router, prefix="/categories", tags=["Categories"])
 app.include_router(products_router, prefix="/products", tags=["Products"])
 app.include_router(carts_router, prefix="/carts", tags=["Carts"])
 app.include_router(cart_items_router, prefix="/cart-items", tags=["Cart Items"])
+app.include_router(customer_addresses_router, prefix="/addresses", tags=["Addresses"])
 app.include_router(orders_router, prefix="/orders", tags=["Orders"])
 app.include_router(order_items_router, prefix="/order-items", tags=["Order Items"])
 app.include_router(payments_router, prefix="/payments", tags=["Payments"])

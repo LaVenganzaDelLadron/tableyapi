@@ -9,3 +9,5 @@ class OrderItems(TimestampMixin, Base):
     product_id = Column(Integer, ForeignKey('products.id'))
     quantity = Column(Integer, default=1)
     price = Column(Float)
+    product_name = Column(String)
+    subtotal = Column(Float)

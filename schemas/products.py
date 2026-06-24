@@ -11,3 +11,13 @@ class Products(BaseModel):
     status: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+
+class StockAdjustment(BaseModel):
+    quantity_delta: int
+    reason: str | None = None
+
+
+class ProductImageUpload(BaseModel):
+    filename: str = Field(min_length=1)
+    content_base64: str = Field(min_length=1)
