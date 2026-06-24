@@ -4,9 +4,9 @@ from starlette import status
 
 from api.dependencies import get_current_user, get_db
 from api.responses import success
-from schemas.users import ChangePassword, CreateUser, LoginUser, UpdateProfile
+from schemas.users import ChangePassword, CreateUser, ForgotPassword, LoginUser, ResetPassword, UpdateProfile
 from services.auth_service import change_password as change_password_service
-from services.auth_service import create_access_token, login as login_service
+from services.auth_service import create_access_token, create_password_reset, login as login_service, reset_password as reset_password_service
 from services.auth_service import register as register_service
 from services.users_service import update_profile
 
@@ -74,6 +74,21 @@ async def change_password(payload: ChangePassword, db: Session = Depends(get_db)
 
     return success("Password changed successfully")
 
+
+@router.post("/forgot-password")
+async def forgot_password(payload: ForgotPassword, db: Session = Depends(get_db)):
+    token = create_password_reset(db, payload.email)
+    data = {"reset_token": token} if token else None
+    return success("Password reset requested", data)
+
+
+@router.post("/reset-password")
+async def reset_password(payload: ResetPassword, db: Session = Depends(get_db)):
+    user = reset_password_service(db, payload.token, payload.new_password)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
+
+    return success("Password reset successfully")
 
 
 

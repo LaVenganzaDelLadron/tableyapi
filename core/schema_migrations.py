@@ -24,6 +24,10 @@ TABLE_COLUMN_SQL = {
     "cart_items": {
         "product_id": "INTEGER",
     },
+    "order_items": {
+        "product_name": "TEXT",
+        "subtotal": "FLOAT",
+    },
     "shipping": {
         "created_at": "DATETIME",
         "updated_at": "DATETIME",
@@ -41,6 +45,10 @@ TIMESTAMP_TABLES = (
     "products",
     "shipping",
     "users",
+    "audit_logs",
+    "customer_addresses",
+    "order_status_history",
+    "password_resets",
 )
 
 

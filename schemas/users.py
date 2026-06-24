@@ -22,3 +22,12 @@ class UpdateProfile(BaseModel):
 class ChangePassword(BaseModel):
     current_password: str
     new_password: str
+
+
+class ForgotPassword(BaseModel):
+    email: str = Field(min_length=1)
+
+
+class ResetPassword(BaseModel):
+    token: str = Field(min_length=1)
+    new_password: str = Field(min_length=6)

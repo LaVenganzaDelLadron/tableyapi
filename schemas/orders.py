@@ -16,3 +16,8 @@ class Orders(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
+
+
+class CheckoutOrder(BaseModel):
+    information_id: int | None = Field(default=None, gt=0)
+    payment_method: str = Field(min_length=1)
