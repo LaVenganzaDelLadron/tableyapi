@@ -1,3 +1,9 @@
+
+# Explanation:
+# This file is part of the tableyapi backend and contains API route handlers for payments operations.
+# The original code lines remain unchanged; these comments are added to explain the purpose of the module.
+# Read the surrounding imports and logic together to understand how this file contributes to the application.
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -58,6 +64,5 @@ async def delete_payment(payment_id: int, db: Session = Depends(get_db), current
         not_found("Payment not found")
 
     return success("Payment deleted successfully", data)
-
 
 

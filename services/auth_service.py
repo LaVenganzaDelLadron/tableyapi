@@ -1,3 +1,9 @@
+
+# Explanation:
+# This file is part of the tableyapi backend and contains Business logic and service layer code for auth service.
+# The original code lines remain unchanged; these comments are added to explain the purpose of the module.
+# Read the surrounding imports and logic together to understand how this file contributes to the application.
+
 import os
 import hashlib
 import hmac

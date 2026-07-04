@@ -1,3 +1,9 @@
+
+# Explanation:
+# This file is part of the tableyapi backend and contains Shared API helpers and utilities for responses.
+# The original code lines remain unchanged; these comments are added to explain the purpose of the module.
+# Read the surrounding imports and logic together to understand how this file contributes to the application.
+
 from typing import Any
 
 from fastapi import HTTPException
@@ -26,4 +32,3 @@ def not_found(message: str, code: str = "NOT_FOUND") -> None:
         status_code=status.HTTP_404_NOT_FOUND,
         detail=error_payload(message, code),
     )
-

@@ -1,3 +1,9 @@
+
+# Explanation:
+# This file is part of the tableyapi backend and contains Regression and behavior tests covering test auth and roles.
+# The original code lines remain unchanged; these comments are added to explain the purpose of the module.
+# Read the surrounding imports and logic together to understand how this file contributes to the application.
+
 from conftest import auth_headers
 
 

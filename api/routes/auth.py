@@ -1,3 +1,9 @@
+
+# Explanation:
+# This file is part of the tableyapi backend and contains API route handlers for auth operations.
+# The original code lines remain unchanged; these comments are added to explain the purpose of the module.
+# Read the surrounding imports and logic together to understand how this file contributes to the application.
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
@@ -89,7 +95,6 @@ async def reset_password(payload: ResetPassword, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
 
     return success("Password reset successfully")
-
 
 
 

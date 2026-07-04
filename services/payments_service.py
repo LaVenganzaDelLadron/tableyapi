@@ -1,3 +1,9 @@
+
+# Explanation:
+# This file is part of the tableyapi backend and contains Business logic and service layer code for payments service.
+# The original code lines remain unchanged; these comments are added to explain the purpose of the module.
+# Read the surrounding imports and logic together to understand how this file contributes to the application.
+
 from api.pagination import paginate
 from sqlalchemy.orm import Session
 from models.orders import Orders, OrderStatus
