@@ -6,7 +6,7 @@
 
 import enum
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float
-from core.database import Base
+from cores.database import Base
 from models.mixins import TimestampMixin
 
 class OrderStatus(enum.Enum):

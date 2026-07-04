@@ -14,8 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from api.handlers import register_exception_handlers
 from api.responses import error_payload
-from core.database import Base, engine
-from core.schema_migrations import ensure_scan_columns
+from cores.database import engine, Base
+from cores.schema_migrations import ensure_scan_columns
 
 from models.audit_logs import AuditLogs
 from models.customer_addresses import CustomerAddresses

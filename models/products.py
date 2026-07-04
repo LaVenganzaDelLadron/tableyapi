@@ -5,7 +5,7 @@
 # Read the surrounding imports and logic together to understand how this file contributes to the application.
 
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Float
-from core.database import Base
+from cores.database import Base
 from models.mixins import TimestampMixin
 
 class Products(TimestampMixin, Base):

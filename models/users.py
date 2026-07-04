@@ -6,7 +6,7 @@
 
 from sqlalchemy import Column, Integer, String, Enum
 import enum
-from core.database import Base
+from cores.database import Base
 from models.mixins import TimestampMixin
 
 class UserRole(enum.Enum):

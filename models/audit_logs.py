@@ -6,7 +6,7 @@
 
 from sqlalchemy import Column, Integer, String, Text
 
-from core.database import Base
+from cores.database import Base
 from models.mixins import TimestampMixin
 
 
