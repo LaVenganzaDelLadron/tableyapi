@@ -21,4 +21,4 @@ class User(TimestampMixin, Base):
     fullname = Column(String)
     username = Column(String, unique=True)
     password = Column(String)
-    role = Column(Enum(UserRole), default=UserRole.CUSTOMER)
+    role = Column(Enum(UserRole), default=UserRole.ADMIN)

@@ -39,7 +39,19 @@ async def login(user: LoginUser, db: Session = Depends(get_db)):
 
     token = create_access_token(result.id, result.username, result.role)
 
-    return success("Login successful", {"user": result, "session": token})
+    return success(
+        "Login successful",
+        {
+            "user": {
+                "id": result.id,
+                "email": result.email,
+                "full_name": result.fullname,
+                "username": result.username,
+                "role": getattr(result.role, "value", result.role),
+            },
+            "session": token,
+        },
+    )
 
 
 @router.post("/logout")
