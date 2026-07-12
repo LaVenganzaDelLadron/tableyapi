@@ -18,13 +18,18 @@ from cores.database import engine, Base
 from cores.schema_migrations import ensure_scan_columns
 
 from models.password_resets import PasswordResets
-from models.earnings import Earnings
-from models.expenses import Expenses
+from models.raw_materials import RawMaterials
+from models.product_batches import ProductBatches
+from models.products import Products
+from models.sales import Sales
+from models.sale_items import SaleItems
 
 from api.routes.auth import router as auth_router
-from api.routes.earnings import router as earnings_router
-from api.routes.expenses import router as expenses_router
-from api.routes.analytics import router as analytics_router
+from api.routes.sales import router as sales_router
+from api.routes.sale_items import router as sale_items_router
+from api.routes.products import router as products_router
+from api.routes.production_batches import router as production_batches_router
+from api.routes.raw_materials import router as raw_materials_router
 
 
 
@@ -85,6 +90,8 @@ async def root():
 
 
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
-app.include_router(earnings_router, prefix="/earnings", tags=["Earnings"])
-app.include_router(expenses_router, prefix="/expenses", tags=["Expenses"])
-app.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])
+app.include_router(raw_materials_router, prefix="/raw_materials", tags=["Raw Materials"])
+app.include_router(production_batches_router, prefix="/production_batches", tags=["Production Batches"])
+app.include_router(products_router, prefix="/products", tags=["Products"])
+app.include_router(sales_router, prefix="/sales", tags=["Sales"])
+app.include_router(sale_items_router, prefix="/sale_items", tags=["Sale Items"])
