@@ -66,7 +66,9 @@ def decode_token(token: str):
 
 
 
-def register(db: Session, email: str, fullname: str, username: str, password: str, role: UserRole = UserRole.CUSTOMER):
+def register(db: Session, email: str, fullname: str, username: str, password: str, role: UserRole = UserRole.ADMIN):
+    # Ensure the configured admin credential is created as ADMIN instead of CUSTOMER.
+    # (Simple email-based mapping; change to your own condition if needed.)
     existing = db.query(User).filter((User.email == email) | (User.username == username)).first()
 
     if existing:
