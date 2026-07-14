@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from api.dependencies import get_current_user, get_db
 from api.responses import success
 from schemas.sale_items import SaleItems
-from services.sale_items_service import SaleItems
+from services.sale_items_service import index, store
 
 router = APIRouter()
 
