@@ -2,8 +2,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 class SaleItems(BaseModel):
-    sale_id: str = Field(min_length=1)
-    product_id: str = Field(min_length=1)
+    sale_id: int = Field(min_length=1)
+    product_id: int = Field(min_length=1)
     quantity: int = Field(min_length=1)
     unit_price: float = Field(min_length=1)
     subtotal: float = Field(min_length=1)
