@@ -1,7 +1,7 @@
 # TableyApi (Cacao Backend)
 
 <div align="center">
-  <img src="./chocolate.gif" alt="chocolate" />
+  <img src="chocolate.gif" alt="chocolate" />
 </div>
 
 
