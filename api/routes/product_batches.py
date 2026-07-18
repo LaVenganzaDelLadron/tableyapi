@@ -2,15 +2,15 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from api.dependencies import get_current_user, get_db
 from api.responses import success, bad_request, error_payload
-from services.sales_service import (
-    index as sales_index,
+from services.product_batches_service import (
+    index as product_batches_index,
 )
 
 router = APIRouter()
 
 @router.get("/")
 async def index(db: Session = Depends(get_current_user)):
-    data = sales_index(db)
-    if data is not None:
-        return success("Empty Data", data)
+    data = product_batches_index(db)
+    if data is None:
+        return success("Invalid data", data)
     return success("Successfully fetched data", data)
