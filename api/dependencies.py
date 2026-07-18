@@ -1,34 +1,24 @@
-
-# Explanation:
-# This file is part of the tableyapi backend and contains Shared API helpers and utilities for dependencies.
-# The original code lines remain unchanged; these comments are added to explain the purpose of the module.
-# Read the surrounding imports and logic together to understand how this file contributes to the application.
-
 from fastapi import Depends, HTTPException, Request, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from cores.database import SessionLocal
-from models.users import User, UserRole
+from core.database import SessionLocal
+from models.users_model import User, Role
 from services.auth_service import decode_token
+
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
-
 def get_db():
     db = SessionLocal()
-
     try:
         yield db
     finally:
         db.close()
 
 
-def get_current_user(
-    request: Request,
-    db: Session = Depends(get_db),
-    credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme),
-):
+def get_current_user(request: Request, db: Session = Depends(get_db), credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme)):
+
     if not credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
 
@@ -50,7 +40,7 @@ def get_current_user(
 
 
 def normalize_role(role) -> str:
-    if isinstance(role, UserRole):
+    if isinstance(role, Role):
         return role.value
     value = getattr(role, "value", role)
     return str(value).lower()
@@ -59,28 +49,19 @@ def normalize_role(role) -> str:
 def require_role(required_role: str):
     def dependency(current_user: User = Depends(get_current_user)):
         if normalize_role(current_user.role) != required_role:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions",
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
         return current_user
 
     return dependency
 
 
 def require_customer(current_user: User = Depends(get_current_user)):
-    if normalize_role(current_user.role) != UserRole.CUSTOMER.value:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Customer access required",
-        )
+    if normalize_role(current_user.role) != Role.CUSTOMER.value:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Customer access required")
     return current_user
 
 
 def require_admin(current_user: User = Depends(get_current_user)):
-    if normalize_role(current_user.role) != UserRole.ADMIN.value:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
-        )
+    if normalize_role(current_user.role) != Role.ADMIN.value:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return current_user

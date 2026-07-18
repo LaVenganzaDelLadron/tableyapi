@@ -1,9 +1,3 @@
-
-# Explanation:
-# This file is part of the tableyapi bac utilities for handlers.
-# The original code lines remain unchanged; these comments are added to explain kend and contains Shared API helpers andthe purpose of the module.
-# Read the surrounding imports and logic together to understand how this file contributes to the application.
-
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -12,10 +6,7 @@ from api.responses import error_payload
 
 
 def _error_response(status_code: int, message: str, code: str, detail: str | None = None) -> JSONResponse:
-    return JSONResponse(
-        status_code=status_code,
-        content=error_payload(message=message, code=code, detail=detail),
-    )
+    return JSONResponse(status_code=status_code, content=error_payload(message=message, code=code, detail=detail))
 
 
 def _detail_to_message(detail) -> tuple[str, str | None]:
@@ -52,12 +43,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    return _error_response(
-        status.HTTP_500_INTERNAL_SERVER_ERROR,
-        "Internal server error",
-        "INTERNAL_SERVER_ERROR",
-        "An unexpected error occurred",
-    )
+    return _error_response(status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal server error", "INTERNAL_SERVER_ERROR", "An unexpected error occurred")
 
 
 def register_exception_handlers(app: FastAPI) -> None:
