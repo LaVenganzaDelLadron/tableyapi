@@ -6,8 +6,6 @@
 
   <img src="./chocolate.gif" alt="chocolate" />
 
-
-  <img src="chocolate.gif" alt="chocolate" />
 </div>
 
 
