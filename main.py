@@ -11,6 +11,9 @@ from api.responses import error_payload
 from core.database import engine, Base
 from core.schema_migration import ensure_scan_columns
 
+# Import all models to register them with SQLAlchemy
+import models
+
 from api.routes.auth import router as auth_router
 from api.routes.sales import router as sales_router
 from api.routes.sale_items import router as sale_items_router
@@ -19,10 +22,31 @@ from api.routes.product_batches import router as production_batches_router
 from api.routes.raw_materials import router as raw_materials_router
 
 
+def run_migrations():
+    """Run Alembic migrations"""
+    import subprocess
+    result = subprocess.run(
+        ["alembic", "upgrade", "head"],
+        cwd=os.path.dirname(__file__),
+        capture_output=True,
+        text=True
+    )
+    if result.returncode != 0:
+        print(f"Migration failed: {result.stderr}")
+    else:
+        print("Migrations applied successfully")
 
+# Run migrations on startup
+try:
+    run_migrations()
+except Exception as e:
+    print(f"Error running migrations: {e}")
 
-Base.metadata.create_all(bind=engine)
-ensure_scan_columns(engine)
+# Try to ensure scan columns, but don't fail if connection fails
+try:
+    ensure_scan_columns(engine)
+except Exception as e:
+    print(f"Warning: Could not ensure scan columns: {e}")
 
 app = FastAPI(title="TableyApi", version="0.0.1")
 register_exception_handlers(app)
