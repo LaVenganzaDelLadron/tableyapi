@@ -6,7 +6,7 @@ class Products(Base, TimestampMixin):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True)
-    production_batches_id = Column(Integer, ForeignKey("production_batches.id"))
+    production_batches_id = Column(Integer, ForeignKey("product_batches.id"))
     name = Column(String, nullable=False)
     selling_price = Column(Float, nullable=False)
     current_stock = Column(Integer, nullable=False)
