@@ -16,11 +16,13 @@ def role_value(role) -> str:
     return str(value).lower()
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    # bcrypt.hashpw returns bytes; store as UTF-8 string in DB
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 def verify_password(password: str, stored_hash: str) -> bool:
     try:
-        return bcrypt.checkpw(password.encode("utf-8"), stored_hash)
+        # stored_hash is saved as a string; convert back to bytes for bcrypt
+        return bcrypt.checkpw(password.encode("utf-8"), stored_hash.encode("utf-8"))
     except Exception as e:
         print(f"An error occurred: {e}")
         return False
@@ -57,6 +59,7 @@ def register(db: Session, email: str, fullname: str, password: str, role: Role =
     return data
 
 def login(db: Session, email: str, password: str):
+    # Return the user object on successful authentication (route will create token)
     data = db.query(User).filter(User.email == email).first()
 
     if not data:
@@ -65,9 +68,7 @@ def login(db: Session, email: str, password: str):
 
     try:
         if verify_password(password, data.password):
-            # Generate JWT TOKEN upon successful login
-            token = create_access_token(data.id, data.role)
-            return token
+            return data
         else:
             print("[-] Invalid Username or Password")
             return None
