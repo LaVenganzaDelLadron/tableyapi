@@ -7,7 +7,7 @@ class RawMaterials(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    name = Column(String,nullable=False)
+    name = Column(String(255),nullable=False)
     weight = Column(Float,nullable=False)
     unit_price = Column(Float,nullable=False)
     total_price = Column(Float,nullable=False)
