@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
+from sqlalchemy.exc import OperationalError
 
 from api.dependencies import get_current_user, get_db
 from api.responses import success
@@ -12,8 +13,11 @@ from services.auth_service import login as login_service
 router = APIRouter()
 
 @router.post("/register", response_model=RegisterUser)
-async def register(user: RegisterUser, db: Session = Depends(get_current_user)):
-    data = register_service(db, user.email, user.full_name, user.password)
+async def register(user: RegisterUser, db: Session = Depends(get_db)):
+    try:
+        data = register_service(db, user.email, user.full_name, user.password)
+    except OperationalError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Database connection error")
     if not data:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect email or password")
 

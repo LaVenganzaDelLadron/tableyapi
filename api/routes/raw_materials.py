@@ -9,7 +9,7 @@ from services.raw_materials_service import(
 router = APIRouter()
 
 @router.get("/")
-async def read_root(db: Session = Depends(get_current_user)):
+async def read_root(db: Session = Depends(get_db)):
     data = raw_material_index(db)
     if data is None:
         return success("Empty Data", data)
