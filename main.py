@@ -8,6 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from api.handlers import register_exception_handlers
 from api.responses import error_payload
+
+# Load environment variables early so DB engine uses correct credentials
+load_dotenv()
+
 from core.database import engine, Base
 from core.schema_migration import ensure_scan_columns
 
@@ -50,9 +54,6 @@ except Exception as e:
 
 app = FastAPI(title="TableyApi", version="0.0.1")
 register_exception_handlers(app)
-
-
-load_dotenv()
 cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
 
 

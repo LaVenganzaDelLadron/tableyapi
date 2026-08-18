@@ -9,7 +9,7 @@ from services.product_batches_service import (
 router = APIRouter()
 
 @router.get("/")
-async def index(db: Session = Depends(get_current_user)):
+async def index(db: Session = Depends(get_db)):
     data = product_batches_index(db)
     if data is None:
         return success("Invalid data", data)

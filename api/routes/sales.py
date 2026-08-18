@@ -9,7 +9,7 @@ from services.sales_service import (
 router = APIRouter()
 
 @router.get("/")
-async def index(db: Session = Depends(get_current_user)):
+async def index(db: Session = Depends(get_db)):
     data = sales_index(db)
     if data is not None:
         return success("Empty Data", data)
